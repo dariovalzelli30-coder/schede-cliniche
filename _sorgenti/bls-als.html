@@ -1,0 +1,623 @@
+<title>BLSD e ALS operativo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: settima scheda della serie. In cima il cronometro dell'arresto (strumento), sotto gli algoritmi come sequenze operative. Rosso = defibrillabile/azione immediata, blu = non defibrillabile */
+:root{
+  --bg:#F3F6F6; --surface:#FFFFFF; --sunk:#E8EEEF; --ink:#13232A; --muted:#55666D; --line:#CFDADC;
+  --accent:#0E6673; --accent-soft:#D9ECEE;
+  --red:#B0432B; --red-soft:#F7E4DF; --blue:#2B5FAE; --blue-soft:#E1EAF7;
+  --amber:#9A6410; --amber-soft:#F5EAD6; --green:#2F7466; --green-soft:#DCEFEA;
+  --warn:#8A2B1E;
+  --paper:#FFF8F6; --grid-minor:#F3D3CC; --grid-major:#E2A397; --trace:#1A1A1A;
+  --f-display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --red:#EE9580; --red-soft:#3A221D; --blue:#86AEEB; --blue-soft:#1A2A42; --amber:#E2AE5A; --amber-soft:#352914; --green:#71C3AF; --green-soft:#15322B;
+  --warn:#F2A193; --paper:#1C1514; --grid-minor:#3A2622; --grid-major:#6A3B33; --trace:#F1ECEA; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --red:#EE9580; --red-soft:#3A221D; --blue:#86AEEB; --blue-soft:#1A2A42; --amber:#E2AE5A; --amber-soft:#352914; --green:#71C3AF; --green-soft:#15322B;
+  --warn:#F2A193; --paper:#1C1514; --grid-minor:#3A2622; --grid-major:#6A3B33; --trace:#F1ECEA; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.9rem,4.5vw,2.8rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.7rem;font-weight:700}
+h3{font-size:1.1rem;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+ul,ol{margin:0;padding-left:1.1em}
+li+li{margin-top:.15em}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:.9em}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.label{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;font-weight:600;color:var(--muted)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{padding-block:28px 20px;display:grid;gap:12px}
+.lede{max-width:70ch;color:var(--muted)}
+nav.chips{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+nav.chips .wrap{display:flex;gap:8px;align-items:center;overflow-x:auto;padding-block:10px;scrollbar-width:thin}
+nav.chips a{flex:none;text-decoration:none;color:var(--ink);font-family:var(--f-mono);font-size:.85rem;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg)}
+nav.chips a:hover{border-color:var(--accent);color:var(--accent)}
+.toggle{flex:none;margin-left:auto;font-size:.88rem;cursor:pointer;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:999px;padding:4px 12px;font-family:var(--f-body);font-weight:600}
+.toggle[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+
+main .wrap{display:grid;gap:56px;padding-block:32px 64px}
+section{display:grid;gap:20px;scroll-margin-top:64px}
+.sec-head{display:grid;gap:6px;border-top:3px solid var(--ink);padding-top:14px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:10px;min-width:0;align-content:start}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:600px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.sc{font-weight:600;font-family:var(--f-display);width:20%}
+tr.hl td{background:var(--red-soft)}
+
+/* cronometro */
+.timer{background:var(--surface);border:2px solid var(--ink);border-radius:14px;padding:16px;display:grid;gap:14px}
+.tm-top{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tm-box{background:var(--sunk);border-radius:10px;padding:10px 12px;display:grid;gap:2px;min-width:0}
+.tm-box .v{font-family:var(--f-mono);font-weight:600;font-size:clamp(1.4rem,6vw,2.2rem);font-variant-numeric:tabular-nums;line-height:1.1}
+.tm-box.cyc .v{color:var(--accent)}
+.tm-box.warn{background:var(--amber-soft)} .tm-box.warn .v{color:var(--amber)}
+.tm-box.due{background:var(--red-soft)} .tm-box.due .v{color:var(--red)}
+.tm-hint{border-radius:10px;padding:10px 12px;background:var(--accent-soft);border-left:4px solid var(--accent);font-size:.95rem;display:grid;gap:2px}
+.tm-hint b{font-family:var(--f-display)}
+.tm-hint.r{background:var(--red-soft);border-left-color:var(--red)}
+.tm-btns{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.tb{font:inherit;font-weight:600;font-size:.92rem;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:12px 8px;min-height:56px;cursor:pointer;display:grid;place-items:center;text-align:center;line-height:1.15;-webkit-user-select:none;user-select:none}
+.tb:active{transform:scale(.97)}
+.tb small{display:block;font-weight:400;font-size:.72rem;color:var(--muted);margin-top:2px}
+.tb.go{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.tb.go small{color:var(--surface);opacity:.8}
+.tb.shock{border-color:var(--red);color:var(--red);background:var(--red-soft)}
+.tb.drug{border-color:var(--amber);color:var(--amber);background:var(--amber-soft)}
+.tb.rosc{border-color:var(--green);color:var(--green);background:var(--green-soft)}
+.tb.rhy{border-color:var(--blue);color:var(--blue);background:var(--blue-soft)}
+.tb[disabled]{opacity:.4;cursor:default}
+.tm-sub{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tm-sub .tb{min-height:42px;padding:8px 12px;font-size:.85rem}
+.tb.on{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.log{max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:10px;font-family:var(--f-mono);font-size:.82rem;background:var(--bg)}
+.log div{display:grid;grid-template-columns:62px 1fr;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line)}
+.log div:last-child{border-bottom:0}
+.log .t{color:var(--muted)}
+.log .empty{display:block;color:var(--muted);font-family:var(--f-body)}
+@media (max-width:640px){.tm-btns{grid-template-columns:repeat(2,minmax(0,1fr))}.tm-top{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.tm-box{padding:8px}}
+
+/* sequenze */
+.seq{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.seq>li{display:grid;grid-template-columns:44px 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:0;align-items:start}
+.seq>li::before{content:attr(data-k);font-family:var(--f-mono);font-weight:600;font-size:1rem;width:40px;height:40px;border-radius:10px;background:var(--ink);color:var(--surface);display:grid;place-items:center}
+.seq>li.red::before{background:var(--red)}
+.seq h3{font-size:1rem;margin-bottom:4px}
+.seq .do{font-size:.9rem}
+.seq .say{font-size:.85rem;color:var(--muted);margin-top:4px}
+
+/* due rami */
+.branch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.br{border-radius:10px;border:2px solid;overflow:hidden;display:grid;align-content:start;min-width:0}
+.br>.h{padding:10px 14px;display:grid;gap:2px}
+.br>.b{padding:10px 14px 14px;display:grid;gap:10px;background:var(--surface)}
+.br.s{border-color:var(--red)} .br.s>.h{background:var(--red-soft)} .br.s h3{color:var(--red)}
+.br.n{border-color:var(--blue)} .br.n>.h{background:var(--blue-soft)} .br.n h3{color:var(--blue)}
+@media (max-width:760px){.branch{grid-template-columns:1fr}}
+
+/* strisce ECG */
+.strip{background:var(--paper);border:1px solid var(--grid-major);border-radius:6px;overflow-x:auto}
+.strip svg{display:block;width:100%;height:auto;min-width:420px}
+.strip .gmin{stroke:var(--grid-minor);stroke-width:.25}
+.strip .gmaj{stroke:var(--grid-major);stroke-width:.5}
+.strip .tr{fill:none;stroke:var(--trace);stroke-width:.9;stroke-linejoin:round;stroke-linecap:round}
+.pat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px 14px;display:grid;gap:8px;min-width:0;align-content:start}
+.pat .hd{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:.72rem;font-weight:600;border-radius:999px;padding:1px 8px;border:1px solid}
+.pill.r{color:var(--red);border-color:var(--red);background:var(--red-soft)}
+.pill.b{color:var(--blue);border-color:var(--blue);background:var(--blue-soft)}
+.pill.a{color:var(--amber);border-color:var(--amber);background:var(--amber-soft)}
+
+.alert{border-left:4px solid var(--warn);background:var(--red-soft);border-radius:0 8px 8px 0;padding:10px 14px;display:grid;gap:4px}
+.alert strong{color:var(--warn);font-family:var(--f-display)}
+.note{border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;padding:10px 14px;display:grid;gap:4px}
+.note strong{font-family:var(--f-display)}
+.cite{font-size:.78rem;color:var(--muted)}
+
+body.quiz .ans{filter:blur(6px);cursor:pointer;user-select:none;transition:filter .15s}
+body.quiz .ans.shown{filter:none;user-select:auto}
+@media (prefers-reduced-motion:reduce){body.quiz .ans{transition:none}}
+ol.refs{display:grid;gap:6px;padding-left:1.6em;font-size:.86rem}
+ol.refs li{margin:0}
+footer .wrap{padding-block:20px 40px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <span class="label">Scheda operativa · adulto · ERC 2025 con differenze AHA 2025</span>
+    <h1>BLSD e ALS operativo</h1>
+    <p class="lede">Piano d'azione passo per passo per l'arresto cardiaco e le aritmie peri-arresto nell'adulto, con un cronometro per gestire cicli, shock e farmaci. Segue le linee guida europee 2025 (ERC, quelle adottate in Italia da IRC) e segnala dove l'AHA differisce. Non sostituisce la certificazione né i protocolli del proprio ospedale.</p>
+  </div>
+</header>
+
+<nav class="chips" aria-label="Sezioni">
+  <div class="wrap">
+    <a href="#cronometro">Cronometro</a>
+    <a href="#blsd">BLSD</a>
+    <a href="#als">ALS</a>
+    <a href="#ritmi">Ritmi</a>
+    <a href="#cause">4 I e 4 T</a>
+    <a href="#rosc">Post-ROSC</a>
+    <a href="#bradi">Bradicardia</a>
+    <a href="#tachi">Tachicardia</a>
+    <a href="#speciali">Speciali</a>
+    <a href="#soffocamento">Soffocamento</a>
+    <a href="#fonti">Fonti</a>
+    <button class="toggle" id="quizToggle" type="button" aria-pressed="false">Modalità ripasso</button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- CRONOMETRO -->
+<section id="cronometro">
+  <div class="sec-head"><span class="label">Da usare durante l'arresto (per chi registra i tempi)</span><h2>Cronometro dell'arresto</h2>
+    <p class="muted small">Tiene il tempo totale, il ciclo di 2 minuti e il tempo dall'ultima adrenalina; suggerisce il passo successivo secondo l'algoritmo ERC. Lo schermo resta acceso dove il dispositivo lo consente. Il registro resta salvato su questo dispositivo finché non lo azzeri.</p></div>
+
+  <div class="timer" id="timer">
+    <div class="tm-top">
+      <div class="tm-box"><span class="label">Totale</span><span class="v" id="tTot">00:00</span></div>
+      <div class="tm-box cyc" id="boxCyc"><span class="label">Ciclo RCP</span><span class="v" id="tCyc">2:00</span></div>
+      <div class="tm-box" id="boxAdr"><span class="label">Da adrenalina</span><span class="v" id="tAdr">—</span></div>
+    </div>
+    <div class="tm-hint" id="hint"><b>Premi "Inizia RCP" quando cominciano le compressioni.</b><span class="small">Poi usa "Analisi ritmo" ogni 2 minuti.</span></div>
+    <div class="tm-btns">
+      <button class="tb go" id="bStart" type="button">Inizia RCP<small>avvia i tempi</small></button>
+      <button class="tb rhy" id="bShk" type="button">Defibrillabile<small>FV / TV senza polso</small></button>
+      <button class="tb rhy" id="bNon" type="button">Non defibrill.<small>asistolia / PEA</small></button>
+      <button class="tb shock" id="bShock" type="button">Shock<small id="shockN">0 erogati</small></button>
+      <button class="tb drug" id="bAdr" type="button">Adrenalina 1 mg<small id="adrN">0 dosi</small></button>
+      <button class="tb drug" id="bAmi" type="button">Amiodarone<small id="amiN">300 mg</small></button>
+      <button class="tb" id="bAir" type="button">Accesso / vie aeree<small>registra</small></button>
+      <button class="tb rosc" id="bRosc" type="button">ROSC<small>segni di vita</small></button>
+    </div>
+    <div class="tm-sub">
+      <button class="tb" id="bMet" type="button" aria-pressed="false">Metronomo 110/min</button>
+      <button class="tb" id="bUndo" type="button">Annulla ultimo</button>
+      <button class="tb" id="bCopy" type="button">Copia registro</button>
+      <button class="tb" id="bReset" type="button">Azzera</button>
+    </div>
+    <div class="log" id="log" aria-live="polite"><span class="empty">Nessun evento registrato.</span></div>
+  </div>
+  <p class="cite">Il cronometro è un supporto alla memoria del team: le decisioni restano del team leader. Ripresa delle compressioni subito dopo ogni shock [1][2].</p>
+</section>
+
+<!-- BLSD -->
+<section id="blsd">
+  <div class="sec-head"><span class="label">Primo soccorritore, dentro e fuori dall'ospedale</span><h2>BLSD adulto</h2></div>
+  <ol class="seq">
+    <li data-k="1"><div><h3>Sicurezza</h3><p class="do">Scena sicura per te e per gli altri; guanti se disponibili.</p></div></li>
+    <li data-k="2"><div><h3>Coscienza</h3><p class="do">Scuoti le spalle e chiama ad alta voce: "Signore, mi sente?"</p></div></li>
+    <li data-k="3" class="red"><div><h3>Allarme</h3><p class="do ans">Non risponde → chiedi aiuto. Fuori dall'ospedale: <b>112</b> in vivavoce e <b>fai portare il DAE</b>. In ospedale: numero interno dell'emergenza e carrello con defibrillatore.</p>
+      <p class="say">Frase tipo: "Tu, chiama il 112 e dì che c'è una persona che non respira; tu, porta il defibrillatore."</p></div></li>
+    <li data-k="4" class="red"><div><h3>Vie aeree e respiro (max 10 s)</h3><p class="do ans">Iperestensione del capo e sollevamento del mento; guarda, ascolta, senti. Respiro assente o <b>anomalo (gasping)</b> = arresto cardiaco. Se sei addestrato, palpa il polso carotideo nello stesso tempo; nel dubbio, inizia le compressioni [3].</p>
+      <p class="say">Nei primi istanti l'arresto può dare un breve episodio simile a una crisi: valuta il respiro quando finisce [3].</p></div></li>
+    <li data-k="5" class="red"><div><h3>30 compressioni</h3><p class="do ans">Centro del torace (metà inferiore dello sterno), braccia tese, profondità <b>5–6 cm</b>, frequenza <b>100–120/min</b>, rilascio completo, su piano rigido [3].</p></div></li>
+    <li data-k="6"><div><h3>2 ventilazioni</h3><p class="do ans">Pallone-maschera o pocket mask: ognuna di circa 1 s, quanto basta per far sollevare il torace. Rapporto <b>30:2</b>. Se non sei in grado di ventilare: solo compressioni continue [3].</p></div></li>
+    <li data-k="7" class="red"><div><h3>DAE appena arriva</h3><p class="do ans">Accendilo e segui la voce. Piastre su cute nuda in posizione <b>antero-laterale</b>: sotto la clavicola destra e laterale sinistra, sotto l'ascella sulla linea medio-ascellare [1]. Continua le compressioni mentre un altro applica le piastre. Durante analisi e shock nessuno tocca il paziente. Dopo lo shock (o "shock non indicato") <b>riprendi subito le compressioni</b> [3].</p></div></li>
+    <li data-k="8"><div><h3>Continua</h3><p class="do ans">Cambia chi comprime ogni 2 minuti, durante l'analisi del DAE. Fermati solo se: arriva il soccorso avanzato e prende in carico, il paziente dà segni di vita evidenti (si muove, apre gli occhi, respira normalmente), sei esausto.</p></div></li>
+  </ol>
+  <div class="note"><strong>Se respira normalmente</strong><span class="small">Posizione laterale di sicurezza, rivaluta il respiro di continuo, chiama il 112. Se smette di respirare normalmente: inizia la RCP.</span></div>
+</section>
+
+<!-- ALS -->
+<section id="als">
+  <div class="sec-head"><span class="label">Team in ospedale o equipaggio avanzato</span><h2>ALS: algoritmo dell'arresto</h2>
+    <p class="muted small">Compressioni di qualità e defibrillazione precoce sono le uniche cose che cambiano davvero la sopravvivenza: tutto il resto si fa senza interromperle. Pause pre e post shock &lt; 5 s [1].</p></div>
+
+  <div class="grid2">
+    <div class="card"><span class="label">Ruoli (chi fa cosa) prima di toccare il paziente</span>
+      <ul class="small ans">
+        <li><b>Team leader</b>: non fa manovre, guarda tutto, decide, parla in modo chiaro e chiede conferma ("comunicazione a circuito chiuso").</li>
+        <li><b>Compressori</b> (almeno 2): si danno il cambio ogni 2 minuti, all'analisi del ritmo.</li>
+        <li><b>Defibrillatore</b>: piastre, monitor, carica durante le compressioni, shock in sicurezza.</li>
+        <li><b>Vie aeree</b>: pallone-maschera con ossigeno, poi presidio sovraglottico o intubazione se esperto; capnografia.</li>
+        <li><b>Accessi e farmaci</b>: ev (dopo 2 tentativi falliti → intraossea), prepara adrenalina e amiodarone in anticipo.</li>
+        <li><b>Registratore</b>: tempi, shock, farmaci (usa il cronometro qui sopra).</li>
+      </ul></div>
+    <div class="card"><span class="label">Ogni 2 minuti, sempre uguale</span>
+      <ol class="small ans">
+        <li>Annuncia 15 s prima: "Prossima analisi; prepararsi al cambio; carico?"</li>
+        <li><b>Carica durante le compressioni</b> (se non allunga la pausa) [1].</li>
+        <li>Pausa breve: ritmo (e polso solo se ritmo organizzato).</li>
+        <li>Defibrillabile → "Tutti via, ossigeno via" → shock → <b>compressioni subito</b>.</li>
+        <li>Non defibrillabile → scarica in sicurezza → compressioni subito.</li>
+        <li>Cambio compressore; farmaci secondo il ciclo; cerca le cause reversibili.</li>
+      </ol>
+      <p class="cite">Se il monitor mostra asistolia senza artefatti durante le compressioni, non serve fermarsi per il controllo del ritmo [1].</p></div>
+  </div>
+
+  <div class="branch">
+    <div class="br s">
+      <div class="h"><h3>Ritmo defibrillabile</h3><span class="small">Fibrillazione ventricolare, tachicardia ventricolare senza polso</span></div>
+      <div class="b">
+        <div class="tbl-wrap" style="border:0">
+          <table style="min-width:340px">
+            <thead><tr><th>Analisi</th><th>Azione</th></tr></thead>
+            <tbody class="ans">
+              <tr><td class="num">1ª</td><td>Shock 1 → RCP 2 min. Accesso venoso, vie aeree.</td></tr>
+              <tr><td class="num">2ª</td><td>Shock 2 → RCP 2 min.</td></tr>
+              <tr class="hl"><td class="num">3ª</td><td>Shock 3 → RCP; <b>adrenalina 1 mg</b> + <b>amiodarone 300 mg</b>.</td></tr>
+              <tr><td class="num">4ª</td><td>Shock 4 → RCP. Se 3 shock falliti: <b>piastre antero-posteriori</b> (cambio di vettore) [1].</td></tr>
+              <tr class="hl"><td class="num">5ª</td><td>Shock 5 → RCP; <b>adrenalina 1 mg</b> + <b>amiodarone 150 mg</b>.</td></tr>
+              <tr><td class="num">poi</td><td>Shock a ogni analisi se defibrillabile; adrenalina ogni 3–5 min (cicli alterni).</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="small ans">
+          <li><b>Energia</b> (bifasico): primo shock almeno 150 J (130–150 J per onda bifasica pulsata), poi aumentare se possibile; se non sai, energia massima [1].</li>
+          <li>Arresto testimoniato e monitorato con defibrillatore già collegato: fino a 3 shock in rapida sequenza, che contano come "primo shock" [1].</li>
+          <li>Alternativa all'amiodarone: <b>lidocaina 100 mg</b>, poi 50 mg dopo il 5° shock [1].</li>
+        </ul>
+      </div>
+    </div>
+    <div class="br n">
+      <div class="h"><h3>Ritmo non defibrillabile</h3><span class="small">Asistolia, attività elettrica senza polso (PEA)</span></div>
+      <div class="b">
+        <ul class="small ans">
+          <li><b>Adrenalina 1 mg ev/io appena possibile</b>, poi ogni 3–5 min [1].</li>
+          <li>RCP 2 min, poi rianalisi. Se diventa defibrillabile → ramo rosso.</li>
+          <li>Asistolia: controlla che non sia una FV fine (cavi, guadagno) e cerca onde P (possibile risposta al pacing) [1].</li>
+          <li>PEA: è il ritmo in cui contano di più le <b>cause reversibili</b> (sotto): ipovolemia, tamponamento, pneumotorace, embolia, iperkaliemia.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <div class="card"><span class="label">Vie aeree e ventilazione [1]</span>
+      <ul class="small ans">
+        <li>Ossigeno alla massima concentrazione possibile.</li>
+        <li>Pallone-maschera 30:2; con presidio sovraglottico o tubo: compressioni continue e <b>10 ventilazioni/min</b>.</li>
+        <li>Intubazione solo da operatori esperti, pausa &lt; 5 s.</li>
+        <li><b>Capnografia</b> sempre: conferma il tubo, misura la qualità della RCP; un aumento improvviso suggerisce ROSC. Non fermare la RCP basandosi solo sulla CO₂.</li>
+      </ul></div>
+    <div class="card"><span class="label">Ecografia e altre procedure [1]</span>
+      <ul class="small ans">
+        <li>Ecografia solo da operatori esperti e <b>senza allungare le pause</b>: utile per tamponamento e pneumotorace.</li>
+        <li>Dilatazione del ventricolo destro da sola non basta per diagnosticare embolia.</li>
+        <li>RCP extracorporea (ECPR) in pazienti selezionati dove disponibile.</li>
+        <li>Compressioni meccaniche solo se quelle manuali non sono praticabili o sicure.</li>
+      </ul></div>
+    <div class="card"><span class="label">Dove l'AHA 2025 differisce [4][5]</span>
+      <ul class="small ans">
+        <li>Adrenalina nei defibrillabili: "dopo che i primi tentativi di defibrillazione sono falliti" (senza fissare il 3° shock).</li>
+        <li>Cambio di vettore e doppia defibrillazione sequenziale: utilità non stabilita. L'ERC suggerisce il cambio di vettore dopo 3 shock e non raccomanda di routine la doppia defibrillazione.</li>
+        <li>Bradicardia: atropina 1 mg (ERC 0,5 mg), vedi sotto.</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- RITMI -->
+<section id="ritmi">
+  <div class="sec-head"><span class="label">Riconoscere in 2 secondi</span><h2>Ritmi dell'arresto e peri-arresto</h2>
+    <p class="muted small">Tracciati schematici didattici a 25 mm/s. Il ritmo si giudica sempre insieme al polso e alla clinica.</p></div>
+  <div class="grid2">
+    <div class="pat"><div class="hd"><h3>Fibrillazione ventricolare</h3><span class="pill r">shock</span></div><div class="strip"><svg data-ecg="vf" role="img" aria-label="Fibrillazione ventricolare: onde caotiche senza complessi riconoscibili"></svg></div><p class="small ans">Attività caotica senza QRS riconoscibili. Shock subito, a qualsiasi ampiezza [1].</p></div>
+    <div class="pat"><div class="hd"><h3>TV senza polso</h3><span class="pill r">shock</span></div><div class="strip"><svg data-ecg="vt" role="img" aria-label="Tachicardia ventricolare: complessi larghi regolari e rapidi"></svg></div><p class="small ans">QRS larghi, regolari, rapidi. <b>Senza polso</b> = arresto (shock). Con polso = tachicardia instabile o stabile (sezione Tachicardia).</p></div>
+    <div class="pat"><div class="hd"><h3>Torsione di punta</h3><span class="pill r">shock se senza polso</span></div><div class="strip"><svg data-ecg="tdp" role="img" aria-label="Torsione di punta: QRS che cambiano ampiezza attorno alla linea di base"></svg></div><p class="small ans">TV polimorfa con ampiezza che "ruota". Senza polso: shock. Magnesio 2 g ev; correggere K e farmaci che allungano il QT.</p></div>
+    <div class="pat"><div class="hd"><h3>Asistolia</h3><span class="pill b">non shock</span></div><div class="strip"><svg data-ecg="asys" role="img" aria-label="Asistolia: linea quasi piatta"></svg></div><p class="small ans">Linea quasi piatta: controllare cavi, derivazione e guadagno. Adrenalina subito.</p></div>
+    <div class="pat"><div class="hd"><h3>PEA</h3><span class="pill b">non shock</span></div><div class="strip"><svg data-ecg="pea" role="img" aria-label="Attività elettrica senza polso: ritmo organizzato"></svg></div><p class="small ans">Qualsiasi ritmo organizzato <b>senza polso</b>. Adrenalina subito e ricerca delle cause reversibili.</p></div>
+    <div class="pat"><div class="hd"><h3>Tachicardia a QRS stretto</h3><span class="pill a">peri-arresto</span></div><div class="strip"><svg data-ecg="svt" role="img" aria-label="Tachicardia sopraventricolare regolare a QRS stretto"></svg></div><p class="small ans">Regolare, ~170/min, P non visibili: probabile tachicardia da rientro. Instabile → cardioversione; stabile → manovre vagali, adenosina.</p></div>
+  </div>
+</section>
+
+<!-- CAUSE -->
+<section id="cause">
+  <div class="sec-head"><span class="label">Da cercare in ogni arresto, durante la RCP</span><h2>Cause reversibili: 4 I e 4 T</h2></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Causa</th><th>Indizi</th><th>Cosa fare</th></tr></thead>
+      <tbody class="ans">
+        <tr><td class="sc">Ipossia</td><td>Arresto respiratorio, ostruzione, SpO₂ bassa prima dell'arresto</td><td>Ossigeno 100%, ventilazione efficace, verificare il tubo con capnografia</td></tr>
+        <tr><td class="sc">Ipovolemia</td><td>Emorragia, trauma, disidratazione, PEA</td><td>Fluidi e sangue; controllo dell'emorragia</td></tr>
+        <tr><td class="sc">Iper/ipokaliemia e altri disturbi metabolici</td><td>Insufficienza renale, dialisi, farmaci; EGA con K</td><td>Iperkaliemia in arresto: <b>calcio cloruro 10% 10 mL</b> + <b>bicarbonato di sodio 50 mmol</b> ev (vie separate o lavaggio); dialisi se refrattaria [6]</td></tr>
+        <tr><td class="sc">Ipotermia</td><td>Esposizione, annegamento; temperatura centrale</td><td>Vedi Situazioni speciali [6]</td></tr>
+        <tr><td class="sc">Trombosi coronarica</td><td>Dolore toracico prima dell'arresto, FV</td><td>Dopo ROSC: ECG 12 derivazioni e coronarografia se indicata</td></tr>
+        <tr><td class="sc">Trombosi polmonare (embolia)</td><td>Dispnea improvvisa, TVP, immobilità, PEA</td><td>Trombolisi; continuare la RCP per 60–90 min dopo [1][6]</td></tr>
+        <tr><td class="sc">Tamponamento</td><td>Trauma toracico, post-cardiochirurgia, neoplasia; eco</td><td>Pericardiocentesi o toracotomia</td></tr>
+        <tr><td class="sc">Tossici</td><td>Anamnesi, confezioni vuote</td><td>Antidoti specifici, Centro antiveleni, RCP prolungata [6]</td></tr>
+        <tr><td class="sc">Tensione (pneumotorace iperteso)</td><td>Trauma, ventilazione meccanica, asma; murmure assente, giugulari turgide</td><td>Decompressione (toracostomia)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cite">In inglese: 4 H e 4 T. In italiano spesso "4 I e 4 T".</p>
+</section>
+
+<!-- POST ROSC -->
+<section id="rosc">
+  <div class="sec-head"><span class="label">Il lavoro non finisce al ritorno del polso</span><h2>Dopo il ROSC</h2>
+    <p class="muted small">Approccio ABCDE con obiettivi precisi. Valori ERC 2025; tra parentesi le differenze AHA 2025 [5][7][8].</p></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Obiettivo</th><th>Target</th></tr></thead>
+      <tbody class="ans">
+        <tr><td class="sc">A · Vie aeree</td><td>Proteggere le vie aeree se GCS basso; capnografia continua</td></tr>
+        <tr><td class="sc">B · Ossigeno</td><td>SpO₂ <b>94–98%</b> (AHA 90–98%); evitare iperossia una volta misurabile la SpO₂</td></tr>
+        <tr><td class="sc">B · Ventilazione</td><td>Normocapnia (PaCO₂ 35–45 mmHg)</td></tr>
+        <tr><td class="sc">C · Pressione</td><td>PAM &gt; 60–65 mmHg, sistolica &gt; 100 mmHg; fluidi, vasopressori o inotropi</td></tr>
+        <tr><td class="sc">C · Cuore</td><td><b>ECG 12 derivazioni</b>: sopraslivellamento ST o instabilità → coronarografia urgente; altrimenti valutare dopo ecocardiogramma</td></tr>
+        <tr><td class="sc">D · Neurologico</td><td>Controllo della temperatura: <b>evitare la febbre per almeno 72 h</b> (AHA: mantenere 32–37,5 °C per almeno 36 h nei pazienti che non eseguono ordini); trattare le crisi (EEG); prognosi neurologica non prima di 72 h</td></tr>
+        <tr><td class="sc">E · Altro</td><td>Normoglicemia; considerare TC dalla testa alla pelvi per cercare la causa</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- BRADI -->
+<section id="bradi">
+  <div class="sec-head"><span class="label">Paziente con polso</span><h2>Bradicardia</h2></div>
+  <ol class="seq">
+    <li data-k="1"><div><h3>ABCDE e monitor</h3><p class="do">Ossigeno se SpO₂ bassa, accesso venoso, ECG 12 derivazioni; cercare cause reversibili: iperkaliemia, farmaci (β-bloccanti, calcio-antagonisti, digossina), ischemia, ipotermia, ipotiroidismo.</p></div></li>
+    <li data-k="2" class="red"><div><h3>Ci sono segni avversi?</h3><p class="do ans">Shock, sincope, ischemia miocardica, scompenso grave [1].</p></div></li>
+    <li data-k="3" class="red"><div><h3>Sì → farmaci</h3><p class="do ans"><b>Atropina 500 µg ev</b>, ripetibile ogni 3–5 min fino a 3 mg (ERC) [1]. AHA: 1 mg ogni 3–5 min fino a 3 mg [4].</p>
+      <p class="say ans">Non dare atropina nel BAV di alto grado a QRS largo né nel cuore trapiantato [1].</p></div></li>
+    <li data-k="4" class="red"><div><h3>Se non risponde</h3><p class="do ans"><b>Isoprenalina</b> 5 µg/min o <b>adrenalina</b> 2–10 µg/min in infusione; <b>pacing transcutaneo</b> come ponte, poi transvenoso precoce. Intossicazione da β-bloccanti o calcio-antagonisti: considerare glucagone [1].</p></div></li>
+    <li data-k="5"><div><h3>No segni avversi: c'è rischio di asistolia?</h3><p class="do ans">Asistolia recente, BAV II grado Mobitz II, BAV completo a QRS largo, pause ventricolari &gt; 3 s → chiamare l'esperto e preparare il pacing anche se ora è stabile [1].</p></div></li>
+  </ol>
+</section>
+
+<!-- TACHI -->
+<section id="tachi">
+  <div class="sec-head"><span class="label">Paziente con polso</span><h2>Tachicardia</h2></div>
+  <div class="alert"><strong>Instabile (shock, sincope, ischemia miocardica, scompenso grave) → cardioversione elettrica sincronizzata [1]</strong>
+    <span class="small ans">Sedazione o anestesia se cosciente. Fino a 3 tentativi. Energia iniziale: <b>FA alla massima energia</b>; flutter e tachicardia parossistica sopraventricolare 70–120 J; <b>TV con polso 120–150 J</b>, poi aumentare. Se fallisce: amiodarone 300 mg ev in 10–20 min (o procainamide 10–15 mg/kg) e ritentare; poi amiodarone 900 mg nelle 24 h.</span></div>
+  <div class="grid2">
+    <div class="card"><span class="label">Stabile, QRS stretto (&lt; 120 ms)</span>
+      <ul class="small ans">
+        <li><b>Regolare</b>: manovre vagali; la <b>Valsalva modificata</b> (soffiare in una siringa da 10 mL per 15 s, poi supino con gambe sollevate) funziona meglio della classica [9]. Poi <b>adenosina 6 mg</b> in bolo rapido con lavaggio, se serve 12 mg e poi 18 mg (ERC; AHA 6 → 12 mg), registrando l'ECG [1][4].</li>
+        <li>Se l'adenosina rallenta e rivela onde F → flutter: controllo della frequenza.</li>
+        <li><b>Irregolare</b> (probabile FA): controllo della frequenza con β-bloccante o diltiazem se non c'è scompenso; con FE ridotta digossina o amiodarone. Valutare anticoagulazione e tempo di esordio prima di cardiovertire [1].</li>
+      </ul></div>
+    <div class="card"><span class="label">Stabile, QRS largo (≥ 120 ms)</span>
+      <ul class="small ans">
+        <li><b>Regolare</b>: considerarla TV fino a prova contraria. ERC 2025: con cardiopatia strutturale o danno miocardico incerto, <b>cardioversione elettrica</b> raccomandata; alternative procainamide o amiodarone 300 mg ev [1].</li>
+        <li>Adenosina solo se è già documentata una tachicardia sopraventricolare con blocco di branca.</li>
+        <li><b>Irregolare</b>: FA con blocco di branca; <b>FA preeccitata</b> (evitare adenosina, digossina, verapamil, diltiazem: cardioversione); TV polimorfa o torsione di punta → <b>magnesio 2 g</b> ev in 10 min.</li>
+        <li>Chiedere sempre il parere dell'esperto.</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- SPECIALI -->
+<section id="speciali">
+  <div class="sec-head"><span class="label">Cosa cambia rispetto all'algoritmo standard</span><h2>Situazioni speciali</h2></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Situazione</th><th>Cosa cambia</th></tr></thead>
+      <tbody class="ans">
+        <tr><td class="sc">Anafilassi</td><td><b>Adrenalina 0,5 mg im</b> (soluzione 1 mg/mL, faccia antero-laterale della coscia) al primo sospetto; ripetere dopo 5 min se non migliora [6]. In arresto: algoritmo standard</td></tr>
+        <tr><td class="sc">Iperkaliemia in arresto</td><td>Calcio cloruro 10% 10 mL + bicarbonato 50 mmol ev; dialisi se refrattaria [6]</td></tr>
+        <tr><td class="sc">Ipotermia</td><td>Sotto 30 °C: se la FV persiste dopo 3 shock, rinviare altri shock oltre 30 °C; adrenalina solo da 30 °C; tra 30 e 35 °C adrenalina ogni 6–10 min; amiodarone 300 mg una volta, ulteriori dosi oltre 30 °C. Trasferire in un centro con circolazione extracorporea [6]</td></tr>
+        <tr><td class="sc">Gravidanza (&gt; 20 settimane)</td><td>Spostamento manuale dell'utero a sinistra il prima possibile; preparare subito l'isterotomia di emergenza, da eseguire sul posto da un team esperto il prima possibile se non c'è ROSC [6]</td></tr>
+        <tr><td class="sc">Embolia polmonare</td><td>Fibrinolisi se sospetta come causa dell'arresto; RCP per 60–90 min dopo, in pazienti selezionati [6]</td></tr>
+        <tr><td class="sc">Trauma</td><td>Priorità a controllo dell'emorragia, vie aeree, decompressione del torace; le compressioni non devono ritardarle [6]</td></tr>
+        <tr><td class="sc">Oppioidi</td><td>Arresto respiratorio con polso: <b>naloxone</b>. In arresto: può essere ragionevole somministrarlo se non interferisce con la RCP di qualità [5]</td></tr>
+        <tr><td class="sc">Defibrillatore impiantato</td><td>Piastre a più di 8 cm dal dispositivo o posizione alternativa [1]</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SOFFOCAMENTO -->
+<section id="soffocamento">
+  <div class="sec-head"><span class="label">Ostruzione delle vie aeree da corpo estraneo, adulto</span><h2>Soffocamento</h2></div>
+  <ol class="seq">
+    <li data-k="1"><div><h3>Tosse efficace?</h3><p class="do">Riesce a tossire e parlare → incoraggia a tossire, non fare altro, sorveglia.</p></div></li>
+    <li data-k="2" class="red"><div><h3>Tosse inefficace, cosciente</h3><p class="do ans"><b>5 colpi tra le scapole</b> (paziente piegato in avanti) → <b>5 compressioni addominali</b> (Heimlich); alternare. In gravidanza avanzata o se non riesci a cingere l'addome: compressioni toraciche [2][5].</p></div></li>
+    <li data-k="3" class="red"><div><h3>Perde coscienza</h3><p class="do ans">Adagia a terra, chiama il 112, <b>inizia la RCP</b> (30:2); prima di ventilare guarda in bocca e rimuovi un corpo estraneo visibile [5].</p></div></li>
+  </ol>
+  <p class="cite">Novità AHA 2025: anche negli adulti si parte con i colpi dorsali, come già raccomandato dall'ERC [5].</p>
+</section>
+
+<!-- FONTI -->
+<section id="fonti">
+  <div class="sec-head"><span class="label">Bibliografia</span><h2>Fonti</h2></div>
+  <ol class="refs">
+    <li>European Resuscitation Council Guidelines 2025: Adult Advanced Life Support. <i>Resuscitation</i> 2025. <a href="https://www.resuscitationjournal.com/article/S0300-9572(25)00281-3/fulltext" target="_blank" rel="noopener">Resuscitation</a> · versione Resuscitation Council UK allineata: <a href="https://www.resus.org.uk/professional-library/2025-resuscitation-guidelines/adult-advanced-life-support-guidelines" target="_blank" rel="noopener">RCUK 2025 ALS</a></li>
+    <li>European Resuscitation Council Guidelines 2025: Executive Summary. <i>Resuscitation</i> 2025. <a href="https://www.resuscitationjournal.com/article/S0300-9572(25)00282-5/fulltext" target="_blank" rel="noopener">Resuscitation</a></li>
+    <li>Resuscitation Council UK. Adult basic life support guidelines 2025 (allineate a ERC 2025). <a href="https://www.resus.org.uk/print/pdf/node/36437" target="_blank" rel="noopener">RCUK 2025 BLS</a></li>
+    <li>Part 9: Adult Advanced Life Support. 2025 American Heart Association Guidelines for CPR and ECC. <i>Circulation</i> 2025. <a href="https://doi.org/10.1161/CIR.0000000000001376" target="_blank" rel="noopener">doi:10.1161/CIR.0000000000001376</a></li>
+    <li>American Heart Association. Highlights of the 2025 AHA Guidelines for CPR and ECC. <a href="https://cpr.heart.org/-/media/CPR-Files/2025-documents-for-cpr-heart-edits-posting/Resuscitation-Science/252500_Hghlghts_2025ECCGuidelines.pdf?sc_lang=en" target="_blank" rel="noopener">AHA</a></li>
+    <li>Resuscitation Council UK. Special circumstances guidelines 2025 (allineate a ERC 2025, Special Circumstances in Resuscitation). <a href="https://www.resus.org.uk/professional-library/2025-resuscitation-guidelines/special-circumstances-guidelines" target="_blank" rel="noopener">RCUK 2025</a> · <a href="https://www.resuscitationjournal.com/article/S0300-9572(25)00265-5/fulltext" target="_blank" rel="noopener">ERC 2025</a></li>
+    <li>Resuscitation Council UK. Adult post-resuscitation care 2025. <a href="https://www.resus.org.uk/sites/default/files/2025-10/Adult%20post-resuscitation%20care%202025.pdf" target="_blank" rel="noopener">RCUK 2025</a></li>
+    <li>Sandroni C, et al. ERC-ESICM guidelines on temperature control after cardiac arrest in adults. <i>Intensive Care Med</i> 2022;48:261–9. <a href="https://pubmed.ncbi.nlm.nih.gov/35089409/" target="_blank" rel="noopener">PMID 35089409</a></li>
+    <li>Appelboam A, et al. Postural modification to the standard Valsalva manoeuvre for emergency treatment of supraventricular tachycardias (REVERT). <i>Lancet</i> 2015;386:1747–53. <a href="https://doi.org/10.1016/S0140-6736(15)61485-4" target="_blank" rel="noopener">doi:10.1016/S0140-6736(15)61485-4</a></li>
+  </ol>
+</section>
+
+</div>
+</main>
+
+<footer><div class="wrap">Scheda operativa, settima della serie. Adulti. Non sostituisce i corsi certificati (IRC/ERC, AHA) né i protocolli aziendali. Le dosi e le energie vanno verificate sul defibrillatore e sui protocolli in uso.</div></footer>
+
+<script>
+(function(){
+function $(id){return document.getElementById(id);}
+
+/* ================= tracciati ================= */
+var G=function(t,c,s,a){return a*Math.exp(-((t-c)*(t-c))/(2*s*s));};
+function lin(t,p){ if(!p||t<p[0][0]||t>=p[p.length-1][0])return 0;
+  for(var i=0;i<p.length-1;i++){var a=p[i],b=p[i+1]; if(t>=a[0]&&t<b[0]) return a[1]+(b[1]-a[1])*(t-a[0])/(b[0]-a[0]);} return 0;}
+var MN={qrs:[[0,0],[15,-1],[40,10],[65,-3],[90,0]],tc:250,tw:38,ta:3};
+var MVT={qrs:[[0,0],[60,8],[120,1],[170,-6],[220,0]],tc:280,tw:30,ta:-1.5};
+var MSV={qrs:[[0,0],[15,-0.5],[38,9],[60,-2.5],[80,0]],tc:200,tw:30,ta:2};
+function mv(r,m){var v=lin(r,m.qrs); if(m.ta)v+=G(r,m.tc,m.tw,m.ta); return v;}
+function times(start,step,n){var a=[];for(var i=0;i<n;i++)a.push(start+i*step);return a;}
+var S={
+  vf:{dur:3000,f:function(t){var env=0.7+0.3*Math.sin(2*Math.PI*t/1700);return env*(3.2*Math.sin(2*Math.PI*t/190)+2.1*Math.sin(2*Math.PI*t/131+1)+1.4*Math.sin(2*Math.PI*t/89+2.2)+0.8*Math.sin(2*Math.PI*t/57+0.4));}},
+  vt:{dur:3000,b:times(60,340,9).map(function(t){return{t:t,m:MVT};})},
+  tdp:{dur:3000,f:function(t){var env=2+6*Math.abs(Math.sin(Math.PI*t/1400));return env*Math.sin(2*Math.PI*t/230);}},
+  asys:{dur:3000,f:function(t){return 0.25*Math.sin(2*Math.PI*t/1100)+0.1*Math.sin(2*Math.PI*t/370);}},
+  pea:{dur:3000,p:times(140,950,4),b:times(250,950,4).map(function(t){return{t:t,m:MN};})},
+  svt:{dur:3000,b:times(60,350,9).map(function(t){return{t:t,m:MSV};})}
+};
+var NS='http://www.w3.org/2000/svg';
+function el(n,a){var e=document.createElementNS(NS,n); for(var k in a)e.setAttribute(k,a[k]); return e;}
+function draw(svg,s){
+  var W=s.dur/10,H=72,base=40;
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  for(var x=0;x<=W+0.01;x+=4)svg.appendChild(el('line',{x1:x,y1:0,x2:x,y2:H,'class':(Math.round(x)%20===0)?'gmaj':'gmin'}));
+  for(var y=base%4;y<=H;y+=4){var maj=Math.abs(((y-base)/4)%5)<0.01; svg.appendChild(el('line',{x1:0,y1:y,x2:W,y2:y,'class':maj?'gmaj':'gmin'}));}
+  var pts=[];
+  for(var t=0;t<=s.dur;t+=2){
+    var v=0;
+    (s.p||[]).forEach(function(c){v+=G(t,c,20,1.5);});
+    (s.b||[]).forEach(function(b){var r=t-b.t; if(r>-150&&r<700)v+=mv(r,b.m);});
+    if(s.f)v+=s.f(t);
+    pts.push((t/10).toFixed(1)+','+Math.max(1,Math.min(H-1,base-v*4)).toFixed(2));
+  }
+  svg.appendChild(el('polyline',{points:pts.join(' '),'class':'tr'}));
+}
+document.querySelectorAll('svg[data-ecg]').forEach(function(svg){var s=S[svg.getAttribute('data-ecg')]; if(s)draw(svg,s);});
+
+/* ================= cronometro ================= */
+var KEY='als-timer-v1';
+var st={start:null,cycleStart:null,events:[],shocks:0,adr:0,lastAdr:null,ami:0,rhythm:null,rosc:false};
+function load(){try{var j=localStorage.getItem(KEY); if(j){var o=JSON.parse(j); if(o&&typeof o==='object')st=Object.assign(st,o);}}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+function now(){return Date.now();}
+function fmt(ms){if(ms<0)ms=0;var s=Math.floor(ms/1000),m=Math.floor(s/60);s=s%60;return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;}
+function fmtC(ms){var neg=ms<0;ms=Math.abs(ms);var s=Math.floor(ms/1000),m=Math.floor(s/60);s=s%60;return (neg?'+':'')+m+':'+(s<10?'0':'')+s;}
+function log(txt){ if(!st.start){st.start=now();} st.events.push({t:now(),txt:txt,snap:snapshot()}); save(); render(); }
+function snapshot(){return {shocks:st.shocks,adr:st.adr,lastAdr:st.lastAdr,ami:st.ami,rhythm:st.rhythm,rosc:st.rosc,cycleStart:st.cycleStart};}
+var wake=null;
+function keepAwake(){try{if(navigator.wakeLock&&!wake){navigator.wakeLock.request('screen').then(function(w){wake=w;w.addEventListener('release',function(){wake=null;});}).catch(function(){});}}catch(e){}}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&st.start&&!st.rosc)keepAwake();});
+
+var actx=null;
+function beep(f,d){try{if(!actx){var AC=window.AudioContext||window.webkitAudioContext; if(!AC)return; actx=new AC();} if(actx.state==='suspended')actx.resume();
+  var o=actx.createOscillator(),g=actx.createGain(); o.frequency.value=f; o.connect(g); g.connect(actx.destination);
+  var t=actx.currentTime; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.25,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+  o.start(t); o.stop(t+d+0.02);}catch(e){}}
+var met=null;
+$('bMet').addEventListener('click',function(){
+  var b=$('bMet');
+  if(met){clearInterval(met);met=null;b.classList.remove('on');b.setAttribute('aria-pressed','false');b.textContent='Metronomo 110/min';return;}
+  beep(1000,0.03); met=setInterval(function(){beep(1000,0.03);},545);
+  b.classList.add('on');b.setAttribute('aria-pressed','true');b.textContent='Metronomo attivo';
+});
+
+$('bStart').addEventListener('click',function(){
+  if(!st.start||st.rosc){ if(!st.start)st.start=now(); st.rosc=false; st.cycleStart=now(); log(st.events.length?'Ripresa RCP':'Inizio RCP'); keepAwake(); }
+  else { st.cycleStart=now(); log('Nuovo ciclo RCP'); }
+});
+$('bShk').addEventListener('click',function(){ st.rhythm='s'; log('Analisi: ritmo DEFIBRILLABILE'); });
+$('bNon').addEventListener('click',function(){ st.rhythm='n'; st.cycleStart=now(); log('Analisi: ritmo NON defibrillabile, RCP'); });
+$('bShock').addEventListener('click',function(){ st.shocks++; st.rhythm='s'; st.cycleStart=now(); log('Shock n. '+st.shocks+', RCP subito'); });
+$('bAdr').addEventListener('click',function(){ st.adr++; st.lastAdr=now(); log('Adrenalina 1 mg (dose '+st.adr+')'); });
+$('bAmi').addEventListener('click',function(){ if(st.ami>=2)return; st.ami++; log(st.ami===1?'Amiodarone 300 mg':'Amiodarone 150 mg'); });
+$('bAir').addEventListener('click',function(){ log('Accesso venoso/IO o via aerea avanzata'); });
+$('bRosc').addEventListener('click',function(){ st.rosc=true; log('ROSC'); });
+$('bUndo').addEventListener('click',function(){
+  if(!st.events.length)return; var e=st.events.pop(), s=e.snap||{};
+  if(st.events.length){var p=st.events[st.events.length-1].snap||{}; Object.keys(p).forEach(function(k){st[k]=p[k];});}
+  else{st.start=null;st.cycleStart=null;st.shocks=0;st.adr=0;st.lastAdr=null;st.ami=0;st.rhythm=null;st.rosc=false;}
+  save(); render();
+});
+var resetArmed=false;
+$('bReset').addEventListener('click',function(){
+  var b=$('bReset');
+  if(!resetArmed){resetArmed=true;b.textContent='Tocca di nuovo per azzerare';setTimeout(function(){resetArmed=false;b.textContent='Azzera';},3000);return;}
+  resetArmed=false;b.textContent='Azzera';
+  st={start:null,cycleStart:null,events:[],shocks:0,adr:0,lastAdr:null,ami:0,rhythm:null,rosc:false};
+  try{localStorage.removeItem(KEY);}catch(e){} render();
+});
+$('bCopy').addEventListener('click',function(){
+  var b=$('bCopy'); if(!st.events.length)return;
+  var t0=st.start, lines=['Registro arresto · inizio '+new Date(t0).toLocaleString('it-IT')];
+  st.events.forEach(function(e){lines.push(fmt(e.t-t0)+'  '+new Date(e.t).toLocaleTimeString('it-IT')+'  '+e.txt);});
+  lines.push('Shock: '+st.shocks+' · Adrenalina: '+st.adr+' mg · Amiodarone: '+(st.ami===0?'0':st.ami===1?'300 mg':'450 mg'));
+  var txt=lines.join('\n');
+  function ok(){b.textContent='Copiato';setTimeout(function(){b.textContent='Copia registro';},1500);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok).catch(function(){b.textContent='Copia non disponibile';});}
+  else b.textContent='Copia non disponibile';
+});
+
+var lastCycleBeep=null;
+function hint(){
+  var h=$('hint');
+  function set(cls,a,b){h.className='tm-hint'+(cls?' '+cls:'');h.innerHTML='<b>'+a+'</b>'+(b?'<span class="small">'+b+'</span>':'');}
+  if(!st.start){set('','Premi "Inizia RCP" quando cominciano le compressioni.','Poi usa "Analisi ritmo" ogni 2 minuti.');return;}
+  if(st.rosc){set('','ROSC: approccio ABCDE e obiettivi post-ROSC.','SpO₂ 94–98%, normocapnia, PAM > 65, ECG 12 derivazioni, evitare la febbre. Se si riarresta, premi "Inizia RCP".');return;}
+  var cyc=st.cycleStart?(120000-(now()-st.cycleStart)):null;
+  if(cyc!==null&&cyc<=15000&&cyc>0){set('r','Tra poco analisi del ritmo','Prepara il cambio del compressore; carica il defibrillatore durante le compressioni.');return;}
+  if(cyc!==null&&cyc<=0){set('r','Analisi del ritmo ora','Pausa breve: defibrillabile o no? Poi registra.');return;}
+  if(st.rhythm==='s'){
+    if(st.shocks===0){set('r','Ritmo defibrillabile: shock','Energia ≥ 150 J bifasico, poi compressioni subito.');return;}
+    if(st.shocks>=3&&st.adr===0){set('r','Dopo il 3° shock: adrenalina 1 mg + amiodarone 300 mg','Considera piastre antero-posteriori se 3 shock falliti.');return;}
+    if(st.shocks>=3&&st.ami===0){set('r','Amiodarone 300 mg','(o lidocaina 100 mg)');return;}
+    if(st.shocks>=5&&st.ami===1){var due=st.lastAdr&&now()-st.lastAdr>=180000; set('r',due?'Dopo il 5° shock: adrenalina 1 mg + amiodarone 150 mg':'Dopo il 5° shock: amiodarone 150 mg',due?'(o lidocaina 50 mg al posto dell\'amiodarone)':'(o lidocaina 50 mg); adrenalina quando sono passati 3–5 min dalla precedente');return;}
+  }
+  if(st.rhythm==='n'&&st.adr===0){set('r','Non defibrillabile: adrenalina 1 mg subito','Poi cerca le cause reversibili (4 I e 4 T).');return;}
+  if(st.lastAdr&&now()-st.lastAdr>=180000){set('','Adrenalina ripetibile','Ogni 3–5 minuti (circa a cicli alterni).');return;}
+  set('','RCP di qualità: 5–6 cm, 100–120/min, rilascio completo','Pause minime; cause reversibili: ipossia, ipovolemia, K, ipotermia, trombosi, tamponamento, tossici, pneumotorace.');
+}
+function render(){
+  var t=now();
+  $('tTot').textContent=st.start?fmt(t-st.start):'00:00';
+  var bc=$('boxCyc'), cv=$('tCyc');
+  if(st.cycleStart&&!st.rosc){var c=120000-(t-st.cycleStart); cv.textContent=fmtC(c);
+    bc.className='tm-box cyc'+(c<=0?' due':c<=15000?' warn':'');
+    if(c<=0&&lastCycleBeep!==st.cycleStart){lastCycleBeep=st.cycleStart;beep(660,0.25);setTimeout(function(){beep(880,0.25);},300);}
+  } else {cv.textContent='2:00';bc.className='tm-box cyc';}
+  var ba=$('boxAdr'), av=$('tAdr');
+  if(st.lastAdr){var a=t-st.lastAdr; av.textContent=fmt(a); ba.className='tm-box'+(a>=300000?' due':a>=180000?' warn':'');}
+  else{av.textContent='—';ba.className='tm-box';}
+  $('shockN').textContent=st.shocks+(st.shocks===1?' erogato':' erogati');
+  $('adrN').textContent=st.adr+(st.adr===1?' dose':' dosi');
+  $('amiN').textContent=st.ami===0?'300 mg':st.ami===1?'150 mg':'completato';
+  $('bAmi').disabled=st.ami>=2;
+  $('bStart').firstChild.textContent=(!st.start)?'Inizia RCP':(st.rosc?'Riprendi RCP':'Nuovo ciclo');
+  var lg=$('log');
+  if(!st.events.length){lg.innerHTML='<span class="empty">Nessun evento registrato.</span>';}
+  else{lg.innerHTML=st.events.slice().reverse().map(function(e){return '<div><span class="t">'+fmt(e.t-st.start)+'</span><span>'+e.txt+'</span></div>';}).join('');}
+  hint();
+}
+load(); render(); setInterval(render,500);
+
+/* ================= ripasso ================= */
+var btn=$('quizToggle');
+function setQ(on){
+  document.body.classList.toggle('quiz',on);
+  btn.setAttribute('aria-pressed',on?'true':'false');
+  btn.textContent=on?'Ripasso attivo':'Modalità ripasso';
+  if(!on){document.querySelectorAll('.ans.shown').forEach(function(e){e.classList.remove('shown');});}
+  try{localStorage.setItem('quiz',on?'1':'0');}catch(e){}
+}
+btn.addEventListener('click',function(){setQ(!document.body.classList.contains('quiz'));});
+document.addEventListener('click',function(ev){
+  if(!document.body.classList.contains('quiz'))return;
+  var a=ev.target.closest('.ans'); if(!a)return;
+  if(!a.classList.contains('shown')){ev.preventDefault();a.classList.add('shown');}
+});
+var saved=null; try{saved=localStorage.getItem('quiz');}catch(e){}
+if(saved==='1')setQ(true);
+})();
+</script>
