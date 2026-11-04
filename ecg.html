@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Schede">
+<meta name="theme-color" content="#F3F6F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1619" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<title>ECG passo per passo</title>
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);-webkit-text-size-adjust:100%}
+body{margin:0;font-size:14px;-webkit-tap-highlight-color:transparent}
+img{max-width:100%}
+[hidden]{display:none!important}
+.homebar{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-family:var(--f-body);font-weight:600;font-size:.9rem;color:var(--accent);padding:6px 0}
+.homebar:active{opacity:.6}
+</style>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+</script>
+</head>
+<body>
+<style>
+/* Layout: terza scheda della serie (Elettroliti, Acido-base). Tracciati disegnati su carta millimetrata a 25 mm/s e 10 mm/mV: 1 quadretto = 40 ms × 0,1 mV */
+:root{
+  --bg:#F3F6F6; --surface:#FFFFFF; --sunk:#E8EEEF; --ink:#13232A; --muted:#55666D; --line:#CFDADC;
+  --accent:#0E6673; --accent-soft:#D9ECEE;
+  --red:#B0432B; --red-soft:#F7E4DF; --blue:#2B5FAE; --blue-soft:#E1EAF7;
+  --amber:#9A6410; --amber-soft:#F5EAD6;
+  --paper:#FFF8F6; --grid-minor:#F3D3CC; --grid-major:#E2A397; --trace:#1A1A1A;
+  --warn:#8A2B1E;
+  --f-display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;
+  --f-body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --red:#EE9580; --red-soft:#3A221D; --blue:#86AEEB; --blue-soft:#1A2A42; --amber:#E2AE5A; --amber-soft:#352914;
+  --paper:#1C1514; --grid-minor:#3A2622; --grid-major:#6A3B33; --trace:#F1ECEA; --warn:#F2A193; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --red:#EE9580; --red-soft:#3A221D; --blue:#86AEEB; --blue-soft:#1A2A42; --amber:#E2AE5A; --amber-soft:#352914;
+  --paper:#1C1514; --grid-minor:#3A2622; --grid-major:#6A3B33; --trace:#F1ECEA; --warn:#F2A193; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.9rem,4.5vw,2.8rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.7rem;font-weight:700}
+h3{font-size:1.1rem;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+ul{margin:0;padding-left:1.1em}
+li+li{margin-top:.15em}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:.9em}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.label{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;font-weight:600;color:var(--muted)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{padding-block:28px 20px;display:grid;gap:12px}
+.lede{max-width:68ch;color:var(--muted)}
+nav.chips{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+nav.chips .wrap{display:flex;gap:8px;align-items:center;overflow-x:auto;padding-block:10px;scrollbar-width:thin}
+nav.chips a{flex:none;text-decoration:none;color:var(--ink);font-family:var(--f-mono);font-size:.85rem;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg)}
+nav.chips a:hover{border-color:var(--accent);color:var(--accent)}
+.toggle{flex:none;margin-left:auto;font-size:.88rem;cursor:pointer;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:999px;padding:4px 12px;font-family:var(--f-body);font-weight:600}
+.toggle[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+
+main .wrap{display:grid;gap:56px;padding-block:32px 64px}
+section{display:grid;gap:20px;scroll-margin-top:64px}
+.sec-head{display:grid;gap:6px;border-top:3px solid var(--ink);padding-top:14px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:10px;min-width:0;align-content:start}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem;min-width:560px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.num{white-space:nowrap}
+
+/* ECG strips */
+.strip{background:var(--paper);border:1px solid var(--grid-major);border-radius:6px;overflow-x:auto}
+.strip svg{display:block;width:100%;height:auto}
+.strip.long svg{min-width:520px}
+.strip .gmin{stroke:var(--grid-minor);stroke-width:.25}
+.strip .gmaj{stroke:var(--grid-major);stroke-width:.5}
+.strip .tr{fill:none;stroke:var(--trace);stroke-width:.9;stroke-linejoin:round;stroke-linecap:round}
+.strip .lead{fill:var(--muted);font-family:var(--f-mono);font-size:4px;font-weight:600}
+.strip .ann{stroke:var(--accent);stroke-width:.5;fill:none}
+.strip .annt{fill:var(--accent);font-family:var(--f-mono);font-size:3.2px;font-weight:600}
+.strip .mark{fill:var(--red);font-family:var(--f-mono);font-size:3.6px;font-weight:600}
+
+.pat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px 14px;display:grid;gap:8px;min-width:0;align-content:start}
+.pat .hd{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.pat .tag{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.kv{display:grid;gap:4px;font-size:.88rem}
+.kv>div{display:grid;grid-template-columns:86px 1fr;gap:8px}
+.kv>div>span:first-child{font-family:var(--f-display);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding-top:2px}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:.72rem;font-weight:600;border-radius:999px;padding:1px 8px;border:1px solid}
+.pill.red{color:var(--red);border-color:var(--red);background:var(--red-soft)}
+.pill.amber{color:var(--amber);border-color:var(--amber);background:var(--amber-soft)}
+.pill.blue{color:var(--blue);border-color:var(--blue);background:var(--blue-soft)}
+
+/* steps */
+.steps9{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;counter-reset:st}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:8px;align-content:start;counter-increment:st;min-width:0}
+.step h3{display:flex;gap:10px;align-items:center}
+.step h3::before{content:counter(st);font-family:var(--f-mono);font-weight:600;width:26px;height:26px;flex:none;border-radius:50%;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-size:.82rem}
+.formula{font-family:var(--f-mono);font-size:.88rem;background:var(--sunk);border-radius:6px;padding:8px 10px;overflow-x:auto;white-space:nowrap}
+
+.axis{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;font-size:.85rem}
+.axis .h{font-family:var(--f-display);font-weight:600;color:var(--muted);font-size:.78rem;display:flex;align-items:center;justify-content:center;text-align:center}
+.axis .c{border-radius:6px;padding:8px 10px;display:grid;gap:2px;border:1px solid var(--line);background:var(--sunk)}
+.axis .c b{font-family:var(--f-display)}
+
+.alert{border-left:4px solid var(--warn);background:var(--red-soft);border-radius:0 8px 8px 0;padding:10px 14px;display:grid;gap:4px}
+.alert strong{color:var(--warn);font-family:var(--f-display)}
+.geri{border:1.5px dashed var(--accent);background:var(--accent-soft);border-radius:10px;padding:14px 16px;display:grid;gap:8px}
+.geri .label{color:var(--accent)}
+.cite{font-size:.78rem;color:var(--muted)}
+
+body.quiz .ans{filter:blur(6px);cursor:pointer;user-select:none;transition:filter .15s}
+body.quiz .ans.shown{filter:none;user-select:auto}
+@media (prefers-reduced-motion:reduce){body.quiz .ans{transition:none}}
+
+ol.refs{display:grid;gap:6px;padding-left:1.4em;font-size:.88rem}
+ol.refs li{margin:0}
+footer .wrap{padding-block:20px 40px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a class="homebar" href="index.html" aria-label="Torna all'elenco delle schede">&#8249; Schede</a>
+    <span class="label">Scheda di ripasso · cardiologia per l'internista / geriatra</span>
+    <h1>ECG passo per passo</h1>
+    <p class="lede">Lettura sistematica in 9 passi, tracciati schematici dei quadri principali, criteri diagnostici e reperti clinici o di laboratorio da cercare. I tracciati sono disegni didattici su carta a 25 mm/s e 10 mm/mV, non registrazioni reali. Con <b>Modalità ripasso</b> criteri e cause vengono oscurati.</p>
+  </div>
+</header>
+
+<nav class="chips" aria-label="Sezioni">
+  <div class="wrap">
+    <a href="#basi">Basi</a>
+    <a href="#passi">9 passi</a>
+    <a href="#ritmi">Ritmi</a>
+    <a href="#bav">Blocchi AV</a>
+    <a href="#branche">Branche</a>
+    <a href="#st">ST-T</a>
+    <a href="#qt">QT ed elettroliti</a>
+    <a href="#clinica">Quadri clinici</a>
+    <a href="#fonti">Fonti</a>
+    <button class="toggle" id="quizToggle" type="button" aria-pressed="false">Modalità ripasso</button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- BASI -->
+<section id="basi">
+  <div class="sec-head"><span class="label">Prima di leggere</span><h2>Carta, onde e valori normali</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <span class="label">Complesso normale (D2)</span>
+      <div class="strip"><svg data-ecg="annot" role="img" aria-label="Complesso PQRST normale con intervalli PR, QRS e QT"></svg></div>
+      <p class="small muted">1 quadretto piccolo = 1 mm = <b>40 ms</b> e 0,1 mV · 1 quadrato grande = 5 mm = <b>200 ms</b> · 10 mm = 1 mV (taratura) [1].</p>
+    </div>
+    <div class="card">
+      <span class="label">Controllo tecnico</span>
+      <ul class="small">
+        <li>Velocità 25 mm/s e taratura 10 mm/mV (il segnale di taratura deve essere alto 2 quadrati grandi).</li>
+        <li>Nome, data, ora, sintomi al momento della registrazione.</li>
+        <li><b>Inversione braccia:</b> P e QRS negativi in D1 e aVR positivo. Sospettarla prima di diagnosticare destrocardia o "asse estremo" [1].</li>
+        <li>Artefatti da tremore (frequenti nell'anziano con Parkinson) possono simulare fibrillazione o flutter.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Parametro</th><th>Normale (adulto)</th><th>Alterato</th></tr></thead>
+      <tbody>
+        <tr><td>Frequenza</td><td class="num">60–100 bpm</td><td>&lt; 60 bradicardia · &gt; 100 tachicardia</td></tr>
+        <tr><td>Onda P</td><td class="num">&lt; 120 ms · &lt; 2,5 mm in D2</td><td>Ingrandimento atriale sinistro o destro [4]</td></tr>
+        <tr><td>Intervallo PR</td><td class="num">120–200 ms</td><td>&lt; 120 preeccitazione / ritmo giunzionale · &gt; 200 BAV I</td></tr>
+        <tr><td>QRS</td><td class="num">&lt; 110 ms</td><td>110–119 blocco incompleto · ≥ 120 blocco completo, ritmo ventricolare, preeccitazione [2]</td></tr>
+        <tr><td>QTc</td><td class="num">&lt; 450 ms (M) · &lt; 460 ms (F)</td><td>≥ 450/460 lungo · &gt; 500 alto rischio di torsione · ≤ 390 corto [3][12]</td></tr>
+        <tr><td>Asse elettrico</td><td class="num">da −30° a +90°</td><td>&lt; −30° deviazione sinistra · &gt; +90° deviazione destra</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 9 PASSI -->
+<section id="passi">
+  <div class="sec-head"><span class="label">Sempre nello stesso ordine</span><h2>Lettura in 9 passi</h2>
+    <p class="muted small">Leggere prima, interpretare poi. Dire "ECG nella norma" solo dopo aver controllato tutti i passi.</p></div>
+  <div class="steps9">
+    <div class="step"><h3>Frequenza</h3>
+      <div class="formula">300 / quadrati grandi tra due R</div>
+      <div class="formula">1500 / quadretti piccoli tra due R</div>
+      <p class="small">Ritmo irregolare: numero di QRS in 10 s (tutto il tracciato standard) × 6.</p></div>
+    <div class="step"><h3>Ritmo</h3>
+      <ul class="small"><li><b>Sinusale</b>: P prima di ogni QRS, QRS dopo ogni P, P positiva in D1, D2, aVF e negativa in aVR.</li>
+      <li>Regolare o irregolare? Se irregolare: regolarmente irregolare (extrasistoli, Mobitz) o irregolarmente irregolare (FA)?</li>
+      <li>Rapporto P:QRS → blocchi AV, dissociazione.</li></ul></div>
+    <div class="step"><h3>Asse</h3>
+      <div class="axis">
+        <div></div><div class="h">aVF +</div><div class="h">aVF −</div>
+        <div class="h">D1 +</div><div class="c"><b>Normale</b><span>0° / +90°</span></div><div class="c"><b>Guarda D2</b><span>D2 + → normale (0/−30°) · D2 − → deviazione sinistra</span></div>
+        <div class="h">D1 −</div><div class="c"><b>Deviazione destra</b><span>+90° / +180°</span></div><div class="c"><b>Estremo</b><span>TV, iperK, inversione elettrodi</span></div>
+      </div>
+      <p class="small ans"><b>Sinistra:</b> emiblocco anteriore sinistro, IMA inferiore, preeccitazione, BBSx. <b>Destra:</b> emiblocco posteriore, ipertrofia destra, embolia polmonare, BPCO, IMA laterale [2][4].</p></div>
+    <div class="step"><h3>Intervalli</h3>
+      <ul class="small"><li><b>PR</b>: da inizio P a inizio QRS.</li><li><b>QRS</b>: nella derivazione dove è più largo.</li><li><b>QT</b>: da inizio QRS a fine T, nella derivazione con T più lunga (di solito D2 o V5), poi correggere (QTc, vedi sotto).</li></ul></div>
+    <div class="step"><h3>Onda P</h3>
+      <ul class="small ans"><li><b>Atrio sinistro</b>: P ≥ 120 ms bifida in D2 ("mitrale"); componente terminale negativa in V1 ≥ 1 mm × 40 ms.</li>
+      <li><b>Atrio destro</b>: P ≥ 2,5 mm in D2 ("polmonare").</li>
+      <li>Depressione del PR diffusa → pericardite.</li></ul><p class="cite">[4][14]</p></div>
+    <div class="step"><h3>QRS</h3>
+      <ul class="small ans"><li><b>Durata</b> → blocchi di branca (passo successivo dei blocchi).</li>
+      <li><b>Ipertrofia sinistra</b>: Sokolow-Lyon SV1 + RV5/V6 ≥ 35 mm; Cornell RaVL + SV3 &gt; 28 mm (M) / &gt; 20 mm (F) [4].</li>
+      <li><b>Basso voltaggio</b>: periferiche &lt; 5 mm, precordiali &lt; 10 mm.</li>
+      <li><b>Q patologiche</b>: in V2–V3 qualsiasi Q &gt; 20 ms o QS; altrove ≥ 30 ms e ≥ 1 mm in 2 derivazioni contigue [8].</li>
+      <li><b>Progressione dell'onda R</b> da V1 a V6 (transizione V3–V4).</li></ul></div>
+    <div class="step"><h3>Segmento ST</h3>
+      <p class="small">Misurato al punto J rispetto alla linea isoelettrica (segmento TP o PR). Sopra- o sottoslivellato? In quali derivazioni contigue? Forma concava o convessa? Ci sono alterazioni speculari (reciproche)?</p>
+      <p class="small ans">Criteri e diagnosi differenziale nella sezione ST-T [8][9].</p></div>
+    <div class="step"><h3>Onda T e U</h3>
+      <ul class="small ans"><li>T normalmente concorde con il QRS (negativa normale in aVR, spesso in V1 e D3).</li>
+      <li>T alte e appuntite → iperK; iperacute (larghe, simmetriche) → ischemia precoce.</li>
+      <li>T invertite profonde → ischemia, Wellens, sovraccarico, emorragia cerebrale.</li>
+      <li>Onda U evidente → ipoK, bradicardia, farmaci.</li></ul></div>
+    <div class="step"><h3>Confronto e clinica</h3>
+      <ul class="small"><li>Confrontare <b>sempre</b> con un ECG precedente: "nuovo" cambia la gestione (BBSx, Q, alterazioni ST).</li>
+      <li>Collegare a sintomi, farmaci, elettroliti (K, Ca, Mg), troponina, TSH.</li>
+      <li>Se dolore toracico in corso e ECG non diagnostico: ripetere a 15–30 min e aggiungere V7–V9 e V3R–V4R [9].</li></ul></div>
+  </div>
+</section>
+
+<!-- RITMI -->
+<section id="ritmi">
+  <div class="sec-head"><span class="label">Passo 2</span><h2>Ritmi da riconoscere</h2></div>
+  <div class="grid2">
+    <div class="pat"><div class="hd"><h3>Ritmo sinusale</h3><span class="tag">D2</span></div>
+      <div class="strip long"><svg data-ecg="sinus" role="img" aria-label="Ritmo sinusale normale"></svg></div>
+      <div class="kv"><div><span>Criteri</span><span>P positiva in D2 prima di ogni QRS, PR costante, RR regolare.</span></div></div></div>
+
+    <div class="pat"><div class="hd"><h3>Fibrillazione atriale</h3><span class="tag">D2</span></div>
+      <div class="strip long"><svg data-ecg="af" role="img" aria-label="Fibrillazione atriale: assenza di onde P, linea di base irregolare, RR irregolari"></svg></div>
+      <div class="kv ans">
+        <div><span>Criteri</span><span>RR irregolarmente irregolari, assenza di P, attività atriale disorganizzata. Diagnosi con ECG 12 derivazioni o tracciato a singola derivazione ≥ 30 s [6].</span></div>
+        <div><span>Cerca</span><span>TSH (ipertiroidismo), funzione renale ed emocromo (prima di anticoagulare), elettroliti, ecocardiogramma; apnee notturne, alcol, ipertensione [6].</span></div>
+        <div><span>Anziano</span><span>Rischio tromboembolico con CHA₂DS₂-VA: l'età ≥ 75 anni vale 2 punti [6].</span></div>
+      </div></div>
+
+    <div class="pat"><div class="hd"><h3>Flutter atriale tipico</h3><span class="tag">D2</span></div>
+      <div class="strip long"><svg data-ecg="flutter" role="img" aria-label="Flutter atriale con onde a dente di sega e conduzione 4:1"></svg></div>
+      <div class="kv ans">
+        <div><span>Criteri</span><span>Onde F "a dente di sega" negative in D2, D3, aVF a ~ 300/min, senza linea isoelettrica. Conduzione 2:1 (FC ≈ 150) o 4:1 (≈ 75).</span></div>
+        <div><span>Trucco</span><span>Tachicardia regolare a 150 bpm a QRS stretto: pensare sempre al flutter 2:1 e cercare la seconda F nascosta nel QRS o nella T [7].</span></div>
+      </div></div>
+
+    <div class="pat"><div class="hd"><h3>Preeccitazione (WPW)</h3><span class="tag">V4</span></div>
+      <div class="strip"><svg data-ecg="wpw" role="img" aria-label="Preeccitazione: PR corto e onda delta"></svg></div>
+      <div class="kv ans">
+        <div><span>Criteri</span><span>PR &lt; 120 ms, onda delta (impastamento iniziale del QRS), QRS largo, alterazioni secondarie di ST-T [7].</span></div>
+        <div><span>Attenzione</span><span>FA preeccitata (irregolare, QRS larghi e variabili): evitare i farmaci che bloccano il nodo AV (adenosina, β-bloccanti, verapamil/diltiazem, digossina) [7].</span></div>
+      </div></div>
+  </div>
+</section>
+
+<!-- BAV -->
+<section id="bav">
+  <div class="sec-head"><span class="label">Disturbi della conduzione atrio-ventricolare</span><h2>Blocchi AV</h2>
+    <p class="muted small">Domanda chiave: il blocco è nel nodo AV (spesso benigno, reversibile) o sotto il nodo (His-Purkinje: rischio di asistolia, indicazione al pacing)? [5][13]</p></div>
+  <div class="grid2">
+    <div class="pat"><div class="hd"><h3>BAV di I grado</h3><span class="pill amber">di solito nodale</span></div>
+      <div class="strip long"><svg data-ecg="bav1" role="img" aria-label="BAV di primo grado: PR lungo costante"></svg></div>
+      <div class="kv ans"><div><span>Criteri</span><span>PR &gt; 200 ms costante, ogni P condotta.</span></div>
+      <div><span>Cerca</span><span>Farmaci, tono vagale, iperK. Un <b>PR che si allunga in corso di endocardite</b> aortica suggerisce ascesso perivalvolare [15].</span></div></div></div>
+
+    <div class="pat"><div class="hd"><h3>BAV II grado Mobitz I (Wenckebach)</h3><span class="pill amber">nodale</span></div>
+      <div class="strip long"><svg data-ecg="mob1" role="img" aria-label="Mobitz 1: allungamento progressivo del PR fino a una P bloccata"></svg></div>
+      <div class="kv ans"><div><span>Criteri</span><span>PR che si allunga progressivamente fino a una P non condotta; il PR dopo la pausa è il più corto. QRS di solito stretto.</span></div>
+      <div><span>Contesti</span><span>Sonno, atleti, IMA inferiore, farmaci che rallentano il nodo [5].</span></div></div></div>
+
+    <div class="pat"><div class="hd"><h3>BAV II grado Mobitz II</h3><span class="pill red">sotto-nodale</span></div>
+      <div class="strip long"><svg data-ecg="mob2" role="img" aria-label="Mobitz 2: PR costante con P improvvisamente bloccata, QRS largo"></svg></div>
+      <div class="kv ans"><div><span>Criteri</span><span>PR <b>costante</b> e improvvisa P non condotta. Spesso QRS largo (malattia del sistema di conduzione).</span></div>
+      <div><span>Rischio</span><span>Progressione a BAV completo: indicazione a pacing se non reversibile [5][13]. Il BAV 2:1 non permette di distinguere Mobitz I da II: QRS largo depone per sede sotto-nodale.</span></div></div></div>
+
+    <div class="pat"><div class="hd"><h3>BAV di III grado (completo)</h3><span class="pill red">urgenza</span></div>
+      <div class="strip long"><svg data-ecg="bav3" role="img" aria-label="BAV completo: P e QRS indipendenti, ritmo di scappamento lento a QRS largo"></svg></div>
+      <div class="kv ans"><div><span>Criteri</span><span>Dissociazione AV: P regolari e QRS regolari ma indipendenti, frequenza atriale &gt; ventricolare. Scappamento giunzionale (QRS stretto, 40–60) o ventricolare (QRS largo, 20–40).</span></div>
+      <div><span>Terapia</span><span>Se instabile: atropina (spesso inefficace se sotto-nodale), isoprenalina/adrenalina, pacing transcutaneo o transvenoso [5].</span></div></div></div>
+  </div>
+
+  <div class="card">
+    <span class="label">Cause reversibili da escludere prima del pacemaker [5][13]</span>
+    <div class="tbl-wrap" style="border:0">
+      <table>
+        <thead><tr><th>Causa</th><th>Reperto clinico / di laboratorio da cercare</th></tr></thead>
+        <tbody class="ans">
+          <tr><td>Iperkaliemia</td><td>K sierico, funzione renale, farmaci (ACE-i, anti-MR); T appuntite, QRS largo</td></tr>
+          <tr><td>Farmaci</td><td>β-bloccanti, verapamil/diltiazem, digossina (digossinemia), amiodarone, inibitori della colinesterasi</td></tr>
+          <tr><td>IMA inferiore</td><td>Troponina, sopraslivellamento in D2-D3-aVF; il BAV è spesso nodale e transitorio</td></tr>
+          <tr><td>Ipotiroidismo</td><td>TSH, fT4; bradicardia, basso voltaggio</td></tr>
+          <tr><td>Ipotermia</td><td>Temperatura centrale; onde J di Osborn</td></tr>
+          <tr><td>Malattia di Lyme</td><td>Esposizione a zecche, eritema migrante, sierologia per Borrelia; BAV fluttuante</td></tr>
+          <tr><td>Apnee ostruttive</td><td>BAV solo notturni; russamento, sonnolenza diurna → polisonnografia</td></tr>
+          <tr><td>Endocardite</td><td>Emocolture, ecocardiogramma transesofageo; PR che si allunga = possibile ascesso [15]</td></tr>
+          <tr><td>Sarcoidosi cardiaca</td><td>BAV avanzato inspiegato in paziente &lt; 60 anni → RM cardiaca / PET [13]</td></tr>
+          <tr><td>Amiloidosi</td><td>Vedi "Quadri clinici": basso voltaggio con pareti ispessite, troponina e NT-proBNP elevati [16]</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- BRANCHE -->
+<section id="branche">
+  <div class="sec-head"><span class="label">QRS ≥ 120 ms</span><h2>Blocchi di branca e fascicolari</h2>
+    <p class="muted small">Criteri AHA/ACCF/HRS [2]. Trucco per V1: se il QRS termina verso l'alto (R' terminale) → branca destra; se termina verso il basso (QS/rS largo) → branca sinistra.</p></div>
+  <div class="grid2">
+    <div class="pat"><div class="hd"><h3>Blocco di branca destra</h3><span class="tag">V1</span></div>
+      <div class="strip"><svg data-ecg="rbbb" role="img" aria-label="Blocco di branca destra in V1: rsR'"></svg></div>
+      <div class="kv ans">
+        <div><span>Criteri</span><span>QRS ≥ 120 ms; rsR' ("orecchie di coniglio") in V1–V2; S larga (&gt; 40 ms) in D1 e V6; T negativa in V1–V3 (secondaria).</span></div>
+        <div><span>Clinica</span><span>Può essere normale. Di nuova insorgenza: embolia polmonare, IMA anteriore, difetto interatriale, cardiopatia. Ricordare la diagnosi differenziale con Brugada [2][11].</span></div>
+      </div></div>
+    <div class="pat"><div class="hd"><h3>Blocco di branca sinistra</h3><span class="tag">V6</span></div>
+      <div class="strip"><svg data-ecg="lbbb" role="img" aria-label="Blocco di branca sinistra in V6: R larga e slargata, T discordante"></svg></div>
+      <div class="kv ans">
+        <div><span>Criteri</span><span>QRS ≥ 120 ms; R larga, slargata o a "M" in D1, aVL, V5–V6; assenza di q settale in D1, V5–V6; QS o rS in V1; ST-T discordanti dal QRS.</span></div>
+        <div><span>Clinica</span><span>Quasi sempre cardiopatia strutturale → ecocardiogramma. Con scompenso, FE ≤ 35% e QRS ≥ 150 ms → candidato a resincronizzazione (CRT) [13]. Con sospetta sindrome coronarica acuta in corso → gestione come STEMI [9]; criteri di Sgarbossa per l'ischemia (sotto).</span></div>
+      </div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><span class="label">Emiblocchi (QRS &lt; 120 ms) [2]</span>
+      <ul class="small ans">
+        <li><b>Anteriore sinistro</b> (il più frequente): asse tra −45° e −90°, qR in aVL, rS in D2-D3-aVF.</li>
+        <li><b>Posteriore sinistro</b> (raro): asse tra +90° e +180°, rS in D1 e aVL, qR in D3 e aVF, dopo aver escluso altre cause di deviazione destra.</li>
+        <li><b>Bifascicolare</b>: BBDx + emiblocco. Con sincope inspiegata → studio elettrofisiologico o monitoraggio per valutare il pacing [13].</li>
+      </ul></div>
+    <div class="card"><span class="label">Ischemia in presenza di BBSx o pacing</span>
+      <ul class="small ans">
+        <li><b>Sgarbossa</b>: ST sopraslivellato ≥ 1 mm concordante con il QRS (5 punti); ST sottoslivellato ≥ 1 mm in V1–V3 (3 punti); ST sopraslivellato discordante ≥ 5 mm (2 punti). Punteggio ≥ 3 → IMA molto probabile [17].</li>
+        <li><b>Smith modificato</b>: il terzo criterio diventa rapporto ST/S ≤ −0,25, più sensibile [18].</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- ST-T -->
+<section id="st">
+  <div class="sec-head"><span class="label">Passi 7 e 8</span><h2>Segmento ST e onda T</h2></div>
+  <div class="alert"><strong>Criteri di STEMI (sopraslivellamento nuovo al punto J, in 2 derivazioni contigue) [8]</strong>
+    <span class="small">≥ 1 mm in tutte le derivazioni tranne V2–V3. In V2–V3: ≥ 2 mm uomini ≥ 40 anni · ≥ 2,5 mm uomini &lt; 40 anni · ≥ 1,5 mm donne. Posteriori V7–V9 ≥ 0,5 mm. Destre V3R–V4R ≥ 0,5 mm.</span></div>
+
+  <div class="grid3">
+    <div class="pat"><div class="hd"><h3>STEMI</h3><span class="tag">V2</span></div>
+      <div class="strip"><svg data-ecg="stemi" role="img" aria-label="Sopraslivellamento del tratto ST convesso"></svg></div>
+      <div class="kv ans"><div><span>Indizi</span><span>ST convesso o rettilineo, territoriale, con alterazioni speculari; Q in evoluzione.</span></div>
+      <div><span>Territori</span><span>D2-D3-aVF inferiore (coronaria dx/circonflessa) · V1–V4 anteriore (IVA) · D1-aVL-V5-V6 laterale (circonflessa/diagonale) · ST ↓ V1–V3 con R alte = posteriore → registrare V7–V9.</span></div></div></div>
+
+    <div class="pat"><div class="hd"><h3>Pericardite acuta</h3><span class="tag">D2</span></div>
+      <div class="strip"><svg data-ecg="peri" role="img" aria-label="Pericardite: sopraslivellamento ST concavo diffuso e sottoslivellamento del PR"></svg></div>
+      <div class="kv ans"><div><span>Indizi</span><span>ST sopraslivellato <b>concavo e diffuso</b>, non territoriale; <b>PR sottoslivellato</b> (sopraslivellato in aVR); niente speculari (eccetto aVR e V1), niente Q [14].</span></div>
+      <div><span>Cerca</span><span>PCR, troponina (se elevata → miopericardite), ecocardiogramma per versamento [14].</span></div></div></div>
+
+    <div class="pat"><div class="hd"><h3>Wellens</h3><span class="tag">V2</span></div>
+      <div class="strip"><svg data-ecg="wellens" role="img" aria-label="Sindrome di Wellens: onda T bifasica"></svg></div>
+      <div class="kv ans"><div><span>Indizi</span><span>T bifasiche (tipo A) o profondamente invertite (tipo B) in V2–V3, in paziente <b>senza dolore</b>, enzimi normali o poco mossi.</span></div>
+      <div><span>Significato</span><span>Stenosi critica dell'IVA prossimale: alto rischio di IMA anteriore esteso; evitare il test da sforzo [19].</span></div></div></div>
+
+    <div class="pat"><div class="hd"><h3>Brugada tipo 1</h3><span class="tag">V1</span></div>
+      <div class="strip"><svg data-ecg="brugada" role="img" aria-label="Pattern di Brugada tipo 1: sopraslivellamento ST a tenda seguito da T negativa"></svg></div>
+      <div class="kv ans"><div><span>Criteri</span><span>ST sopraslivellato ≥ 2 mm "a tenda" (coved) seguito da T negativa in ≥ 1 derivazione tra V1 e V2 (anche in 2° o 3° spazio intercostale) [11].</span></div>
+      <div><span>Cerca</span><span><b>Febbre</b> e farmaci (bloccanti dei canali del sodio, alcuni psicofarmaci) possono smascherarlo; storia di sincope o morte improvvisa in famiglia [11].</span></div></div></div>
+
+    <div class="pat"><div class="hd"><h3>Effetto digitalico</h3><span class="tag">V5</span></div>
+      <div class="strip"><svg data-ecg="digox" role="img" aria-label="Effetto digitalico: sottoslivellamento ST a cucchiaio e QT corto"></svg></div>
+      <div class="kv ans"><div><span>Effetto</span><span>ST sottoslivellato "a cucchiaio", T appiattita, QT accorciato: indica solo esposizione, non tossicità.</span></div>
+      <div><span>Tossicità</span><span>Extrasistoli ventricolari, tachicardia atriale con blocco AV, TV bidirezionale, bradicardie e blocchi. Favorita da ipoK, ipoMg, insufficienza renale (anziano). Dosare digossinemia, K, creatinina [20].</span></div></div></div>
+
+    <div class="pat"><div class="hd"><h3>Altri equivalenti di STEMI</h3><span class="tag">ESC 2023</span></div>
+      <div class="kv ans">
+        <div><span>Blocchi</span><span>BBSx, BBDx o ritmo da pacemaker con sospetta ischemia in corso → strategia di angioplastica primaria [9].</span></div>
+        <div><span>Diffuso</span><span>ST sottoslivellato ≥ 1 mm in ≥ 6 derivazioni con sopraslivellamento in aVR e/o V1 → ischemia multivasale o del tronco comune [9].</span></div>
+        <div><span>Posteriore</span><span>ST ↓ isolato in V1–V3 → registrare V7–V9 [8][9].</span></div>
+        <div><span>de Winter</span><span>ST sottoslivellato ascendente al punto J con T alte e simmetriche in V1–V6: occlusione acuta dell'IVA prossimale [21].</span></div>
+      </div></div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th></th><th>STEMI</th><th>Pericardite</th><th>Ripolarizzazione precoce</th></tr></thead>
+      <tbody class="ans">
+        <tr><td>Distribuzione</td><td>Territoriale</td><td>Diffusa</td><td>Precordiali laterali/inferiori</td></tr>
+        <tr><td>Forma ST</td><td>Convessa o rettilinea</td><td>Concava</td><td>Concava con notch/slurring del punto J</td></tr>
+        <tr><td>Speculari</td><td>Sì</td><td>No (solo aVR, V1)</td><td>No</td></tr>
+        <tr><td>PR</td><td>Normale</td><td>Sottoslivellato</td><td>Normale</td></tr>
+        <tr><td>Evoluzione</td><td>Rapida, Q</td><td>Nei giorni, senza Q</td><td>Stabile nel tempo</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cite">Tabella di sintesi da [8][9][14]. In caso di dubbio: ECG seriati, confronto con ECG precedenti, troponina ad alta sensibilità ed ecocardiogramma.</p>
+</section>
+
+<!-- QT ED ELETTROLITI -->
+<section id="qt">
+  <div class="sec-head"><span class="label">Passi 4 e 8</span><h2>QT, elettroliti e farmaci</h2>
+    <p class="muted small">Collegamento con la scheda "Elettroliti in schema".</p></div>
+  <div class="grid2">
+    <div class="card"><span class="label">Correggere il QT [3]</span>
+      <div class="formula">Bazett: QTc = QT / √RR (s)</div>
+      <div class="formula">Framingham: QTc = QT + 154 × (1 − RR) (ms)</div>
+      <p class="small">Bazett sovracorregge a frequenze alte e sottocorregge a frequenze basse: l'AHA raccomanda formule lineari come Framingham [3]. In FA: media su più battiti.</p>
+    </div>
+    <div class="card"><span class="label">Rischio di torsione di punta [12]</span>
+      <ul class="small ans">
+        <li><b>QTc &gt; 500 ms</b> o aumento &gt; 60 ms rispetto al basale → rischio elevato.</li>
+        <li>Fattori di rischio: età avanzata, sesso femminile, ipoK, ipoMg, bradicardia, scompenso, recente cardioversione da FA, terapia con digitale, insufficienza renale o epatica, più farmaci che allungano il QT.</li>
+        <li>Farmaci frequenti: antiaritmici (sotalolo, amiodarone), macrolidi, fluorochinoloni, aloperidolo e altri antipsicotici, metadone, ondansetron, citalopram/escitalopram.</li>
+      </ul></div>
+  </div>
+
+  <div class="grid3">
+    <div class="pat"><div class="hd"><h3>Iperkaliemia</h3><span class="tag">V3</span></div>
+      <div class="strip"><svg data-ecg="hyperk" role="img" aria-label="Iperkaliemia: T alte e appuntite, P appiattita"></svg></div>
+      <p class="small ans">T alte, appuntite, a base stretta → P appiattita e PR lungo → QRS largo → onda sinusoidale → FV/asistolia. La sequenza non è prevedibile: un ECG normale non esclude un K pericoloso [22].</p></div>
+    <div class="pat"><div class="hd"><h3>Ipokaliemia</h3><span class="tag">V3</span></div>
+      <div class="strip"><svg data-ecg="hypok" role="img" aria-label="Ipokaliemia: T appiattita, ST sottoslivellato, onda U"></svg></div>
+      <p class="small ans">T appiattite, ST sottoslivellato, onda U prominente (QU lungo), extrasistoli, torsione di punta. Spesso associata a ipoMg [22].</p></div>
+    <div class="pat"><div class="hd"><h3>QT lungo</h3><span class="tag">D2</span></div>
+      <div class="strip"><svg data-ecg="longqt" role="img" aria-label="QT lungo"></svg></div>
+      <p class="small ans">Cause: farmaci, ipoK, ipoMg, <b>ipoCa</b> (allunga il segmento ST, T normale), bradicardia, ipotermia, ipotiroidismo, ischemia, emorragia cerebrale, forme congenite [3][12][22].</p></div>
+    <div class="pat"><div class="hd"><h3>QT corto</h3><span class="tag">D2</span></div>
+      <div class="strip"><svg data-ecg="shortqt" role="img" aria-label="QT corto da ipercalcemia"></svg></div>
+      <p class="small ans"><b>Ipercalcemia</b> (accorciamento del segmento ST), digitale, sindrome del QT corto congenita (rara) [3][22].</p></div>
+    <div class="pat"><div class="hd"><h3>Ipotermia</h3><span class="tag">V4</span></div>
+      <div class="strip"><svg data-ecg="osborn" role="img" aria-label="Ipotermia: onda J di Osborn"></svg></div>
+      <p class="small ans">Onda J di Osborn (gobba al punto J), bradicardia, PR e QT lunghi, artefatto da brivido; FA e FV con temperature molto basse. Misurare la temperatura centrale nell'anziano trovato a terra.</p></div>
+    <div class="pat"><div class="hd"><h3>Antidepressivi triciclici</h3><span class="tag">intossicazione</span></div>
+      <div class="kv ans">
+        <div><span>ECG</span><span>Tachicardia sinusale, QRS largo, deviazione destra della parte terminale del QRS (R alta in aVR).</span></div>
+        <div><span>Prognosi</span><span>QRS ≥ 100 ms → rischio di convulsioni; ≥ 160 ms → rischio di aritmie ventricolari [23].</span></div>
+      </div></div>
+  </div>
+</section>
+
+<!-- QUADRI CLINICI -->
+<section id="clinica">
+  <div class="sec-head"><span class="label">ECG + clinica + laboratorio</span><h2>Quadri clinici associati</h2></div>
+  <div class="grid3">
+    <div class="pat"><div class="hd"><h3>Embolia polmonare</h3></div>
+      <div class="kv ans">
+        <div><span>ECG</span><span>Tachicardia sinusale (il reperto più frequente); sovraccarico destro: T negative V1–V4, BBDx, S1Q3T3, asse destro; FA di nuova insorgenza. ECG normale non esclude [10].</span></div>
+        <div><span>Cerca</span><span>Wells/Ginevra, D-dimero (soglia corretta per età &gt; 50 anni: età × 10 µg/L), troponina e NT-proBNP per la stratificazione [10].</span></div>
+      </div></div>
+    <div class="pat"><div class="hd"><h3>Versamento e tamponamento</h3></div>
+      <div class="kv ans">
+        <div><span>ECG</span><span>Basso voltaggio, tachicardia; <b>alternanza elettrica</b> (ampiezza del QRS alternata) suggerisce versamento abbondante [14].</span></div>
+        <div><span>Cerca</span><span>Polso paradosso, turgore giugulare, ipotensione; ecocardiogramma urgente.</span></div>
+      </div></div>
+    <div class="pat"><div class="hd"><h3>Amiloidosi cardiaca</h3></div>
+      <div class="kv ans">
+        <div><span>ECG</span><span><b>Voltaggi bassi o normali con pareti ispessite</b> all'eco (discordanza), pseudo-Q (pseudoinfarto), disturbi di conduzione, FA [16].</span></div>
+        <div><span>Cerca</span><span>Tunnel carpale bilaterale, stenosi del canale lombare, rottura del tendine del bicipite, NT-proBNP sproporzionato, troponina persistentemente elevata; catene leggere libere e immunofissazione, scintigrafia ossea [16].</span></div>
+      </div></div>
+    <div class="pat"><div class="hd"><h3>Ipertrofia ventricolare sinistra</h3></div>
+      <div class="kv ans">
+        <div><span>ECG</span><span>Criteri di voltaggio (Sokolow-Lyon, Cornell), alterazioni secondarie di ripolarizzazione ("strain": ST ↓ e T negativa asimmetrica in V5–V6) [4].</span></div>
+        <div><span>Cerca</span><span>Ipertensione, stenosi aortica (soffio eiettivo), cardiomiopatia ipertrofica; ecocardiogramma. I criteri ECG sono specifici ma poco sensibili [4].</span></div>
+      </div></div>
+    <div class="pat"><div class="hd"><h3>Tiroide</h3></div>
+      <div class="kv ans">
+        <div><span>Iper</span><span>Tachicardia sinusale, FA (nell'anziano può essere l'unico segno: ipertiroidismo "apatico") → TSH in ogni FA di nuova diagnosi [6].</span></div>
+        <div><span>Ipo</span><span>Bradicardia, basso voltaggio, QT lungo, T appiattite; possibile versamento pericardico.</span></div>
+      </div></div>
+    <div class="pat"><div class="hd"><h3>Disturbi di conduzione da farmaci</h3></div>
+      <div class="kv ans">
+        <div><span>Farmaci</span><span>β-bloccanti (anche colliri), verapamil/diltiazem, digossina, amiodarone, ivabradina, <b>donepezil e altri inibitori della colinesterasi</b>.</span></div>
+        <div><span>Dato</span><span>Nei pazienti con demenza, gli inibitori della colinesterasi si associano a più ricoveri per sincope, bradicardia e impianto di pacemaker [24].</span></div>
+      </div></div>
+  </div>
+
+  <div class="geri">
+    <span class="label">Rilevanza geriatrica</span>
+    <ul class="small">
+      <li>Prima di indicare il pacemaker per bradicardia o BAV: rivedere la terapia (β-bloccanti, digossina, inibitori della colinesterasi) e controllare K e TSH [5][24].</li>
+      <li>Politerapia con più farmaci che allungano il QT, ipoK da diuretici e insufficienza renale: ECG basale e di controllo [12].</li>
+      <li>FA: età ≥ 75 anni vale 2 punti nel CHA₂DS₂-VA [6].</li>
+      <li>Scompenso con FE preservata, basso voltaggio e tunnel carpale bilaterale: sospettare amiloidosi da transtiretina [16].</li>
+    </ul>
+  </div>
+</section>
+
+<!-- FONTI -->
+<section id="fonti">
+  <div class="sec-head"><span class="label">Bibliografia</span><h2>Fonti</h2></div>
+  <ol class="refs">
+    <li>Kligfield P, et al. Recommendations for the standardization and interpretation of the ECG. Part I. <i>Circulation</i> 2007;115:1306–24. <a href="https://doi.org/10.1161/CIRCULATIONAHA.106.180200" target="_blank" rel="noopener">doi:10.1161/CIRCULATIONAHA.106.180200</a></li>
+    <li>Surawicz B, et al. AHA/ACCF/HRS Recommendations… Part III: intraventricular conduction disturbances. <i>Circulation</i> 2009;119:e235–40. <a href="https://doi.org/10.1161/CIRCULATIONAHA.108.191095" target="_blank" rel="noopener">doi:10.1161/CIRCULATIONAHA.108.191095</a></li>
+    <li>Rautaharju PM, et al. Part IV: the ST segment, T and U waves, and the QT interval. <i>Circulation</i> 2009;119:e241–50. <a href="https://doi.org/10.1161/CIRCULATIONAHA.108.191096" target="_blank" rel="noopener">doi:10.1161/CIRCULATIONAHA.108.191096</a></li>
+    <li>Hancock EW, et al. Part V: ECG changes associated with cardiac chamber hypertrophy. <i>Circulation</i> 2009;119:e251–61. <a href="https://doi.org/10.1161/CIRCULATIONAHA.108.191097" target="_blank" rel="noopener">doi:10.1161/CIRCULATIONAHA.108.191097</a></li>
+    <li>Kusumoto FM, et al. 2018 ACC/AHA/HRS Guideline on the evaluation and management of patients with bradycardia and cardiac conduction delay. <i>Circulation</i> 2019;140:e382–e482. <a href="https://doi.org/10.1161/CIR.0000000000000628" target="_blank" rel="noopener">doi:10.1161/CIR.0000000000000628</a></li>
+    <li>Van Gelder IC, et al. 2024 ESC Guidelines for the management of atrial fibrillation. <i>Eur Heart J</i> 2024;45:3314–414. <a href="https://doi.org/10.1093/eurheartj/ehae176" target="_blank" rel="noopener">doi:10.1093/eurheartj/ehae176</a></li>
+    <li>Brugada J, et al. 2019 ESC Guidelines for the management of patients with supraventricular tachycardia. <i>Eur Heart J</i> 2020;41:655–720. <a href="https://doi.org/10.1093/eurheartj/ehz467" target="_blank" rel="noopener">doi:10.1093/eurheartj/ehz467</a></li>
+    <li>Thygesen K, et al. Fourth universal definition of myocardial infarction (2018). <i>Eur Heart J</i> 2019;40:237–69. <a href="https://doi.org/10.1093/eurheartj/ehy462" target="_blank" rel="noopener">doi:10.1093/eurheartj/ehy462</a></li>
+    <li>Byrne RA, et al. 2023 ESC Guidelines for the management of acute coronary syndromes. <i>Eur Heart J</i> 2023;44:3720–826. <a href="https://doi.org/10.1093/eurheartj/ehad191" target="_blank" rel="noopener">doi:10.1093/eurheartj/ehad191</a></li>
+    <li>Konstantinides SV, et al. 2019 ESC Guidelines for acute pulmonary embolism. <i>Eur Heart J</i> 2020;41:543–603. <a href="https://doi.org/10.1093/eurheartj/ehz405" target="_blank" rel="noopener">doi:10.1093/eurheartj/ehz405</a></li>
+    <li>Zeppenfeld K, et al. 2022 ESC Guidelines for ventricular arrhythmias and the prevention of sudden cardiac death. <i>Eur Heart J</i> 2022;43:3997–4126. <a href="https://doi.org/10.1093/eurheartj/ehac262" target="_blank" rel="noopener">doi:10.1093/eurheartj/ehac262</a></li>
+    <li>Drew BJ, et al. Prevention of torsade de pointes in hospital settings: AHA/ACCF scientific statement. <i>Circulation</i> 2010;121:1047–60. <a href="https://doi.org/10.1161/CIRCULATIONAHA.109.192704" target="_blank" rel="noopener">doi:10.1161/CIRCULATIONAHA.109.192704</a></li>
+    <li>Glikson M, et al. 2021 ESC Guidelines on cardiac pacing and cardiac resynchronization therapy. <i>Eur Heart J</i> 2021;42:3427–520. <a href="https://doi.org/10.1093/eurheartj/ehab364" target="_blank" rel="noopener">doi:10.1093/eurheartj/ehab364</a></li>
+    <li>Schulz-Menger J, et al. 2025 ESC Guidelines for the management of myocarditis and pericarditis. <i>Eur Heart J</i> 2025;46:3952–4041. <a href="https://doi.org/10.1093/eurheartj/ehaf192" target="_blank" rel="noopener">doi:10.1093/eurheartj/ehaf192</a></li>
+    <li>Delgado V, et al. 2023 ESC Guidelines for the management of endocarditis. <i>Eur Heart J</i> 2023;44:3948–4042. <a href="https://doi.org/10.1093/eurheartj/ehad193" target="_blank" rel="noopener">doi:10.1093/eurheartj/ehad193</a></li>
+    <li>Garcia-Pavia P, et al. Diagnosis and treatment of cardiac amyloidosis: ESC position statement. <i>Eur Heart J</i> 2021;42:1554–68. <a href="https://doi.org/10.1093/eurheartj/ehab072" target="_blank" rel="noopener">doi:10.1093/eurheartj/ehab072</a></li>
+    <li>Sgarbossa EB, et al. Electrocardiographic diagnosis of evolving acute myocardial infarction in the presence of left bundle-branch block. <i>N Engl J Med</i> 1996;334:481–7. <a href="https://doi.org/10.1056/NEJM199602223340801" target="_blank" rel="noopener">doi:10.1056/NEJM199602223340801</a></li>
+    <li>Smith SW, et al. Diagnosis of ST-elevation myocardial infarction in the presence of left bundle branch block with the ST-elevation to S-wave ratio in a modified Sgarbossa rule. <i>Ann Emerg Med</i> 2012;60:766–76. <a href="https://doi.org/10.1016/j.annemergmed.2012.07.003" target="_blank" rel="noopener">doi:10.1016/j.annemergmed.2012.07.003</a></li>
+    <li>de Zwaan C, Bär FW, Wellens HJ. Characteristic electrocardiographic pattern indicating a critical stenosis high in left anterior descending coronary artery in patients admitted because of impending myocardial infarction. <i>Am Heart J</i> 1982;103:730–6. <a href="https://doi.org/10.1016/0002-8703(82)90480-X" target="_blank" rel="noopener">doi:10.1016/0002-8703(82)90480-X</a></li>
+    <li>Ma G, Brady WJ, Pollack M, Chan TC. Electrocardiographic manifestations: digitalis toxicity. <i>J Emerg Med</i> 2001;20:145–52. <a href="https://pubmed.ncbi.nlm.nih.gov/11207409/" target="_blank" rel="noopener">PMID 11207409</a></li>
+    <li>de Winter RJ, et al. A new ECG sign of proximal LAD occlusion. <i>N Engl J Med</i> 2008;359:2071–3. <a href="https://doi.org/10.1056/NEJMc0804737" target="_blank" rel="noopener">doi:10.1056/NEJMc0804737</a></li>
+    <li>Diercks DB, Shumaik GM, Harrigan RA, Brady WJ, Chan TC. Electrocardiographic manifestations: electrolyte abnormalities. <i>J Emerg Med</i> 2004;27:153–60. <a href="https://pubmed.ncbi.nlm.nih.gov/15261358/" target="_blank" rel="noopener">PMID 15261358</a></li>
+    <li>Boehnert MT, Lovejoy FH. Value of the QRS duration versus the serum drug level in predicting seizures and ventricular arrhythmias after an acute overdose of tricyclic antidepressants. <i>N Engl J Med</i> 1985;313:474–9. <a href="https://pubmed.ncbi.nlm.nih.gov/4022081/" target="_blank" rel="noopener">PMID 4022081</a></li>
+    <li>Gill SS, et al. Syncope and its consequences in patients with dementia receiving cholinesterase inhibitors: a population-based cohort study. <i>Arch Intern Med</i> 2009;169:867–73. <a href="https://doi.org/10.1001/archinternmed.2009.43" target="_blank" rel="noopener">doi:10.1001/archinternmed.2009.43</a></li>
+  </ol>
+</section>
+
+</div>
+</main>
+
+<footer><div class="wrap">Scheda di studio, terza della serie con "Elettroliti in schema" ed "Equilibrio acido-base". I tracciati sono schematici e didattici. Soglie e terapie vanno verificate sulle linee guida e sui protocolli locali.</div></footer>
+
+<script>
+(function(){
+/* ---------- generatore di tracciati: 1 unità SVG = 10 ms in x; 1 mm = 4 unità ---------- */
+var G=function(t,c,s,a){return a*Math.exp(-((t-c)*(t-c))/(2*s*s));};
+function lin(t,p){ if(!p||t<p[0][0]||t>=p[p.length-1][0])return 0;
+  for(var i=0;i<p.length-1;i++){var a=p[i],b=p[i+1]; if(t>=a[0]&&t<b[0]) return a[1]+(b[1]-a[1])*(t-a[0])/(b[0]-a[0]);} return 0;}
+var M={
+  N:{qrs:[[0,0],[15,-1],[40,10],[65,-3],[90,0]],tc:250,tw:38,ta:3},
+  wide:{qrs:[[0,0],[30,6],[70,8],[110,-2],[140,0]],tc:330,tw:45,ta:-2.5},
+  rbbb:{qrs:[[0,0],[18,2.5],[40,-3],[62,0],[95,8],[130,0]],tc:290,tw:40,ta:-2},
+  lbbb:{qrs:[[0,0],[35,7],[60,5.5],[90,8.5],[145,0]],tc:310,tw:45,ta:-2.5},
+  wpw:{qrs:[[0,0],[40,2.6],[65,10],[90,-2],[115,0]],tc:280,tw:40,ta:-1.5},
+  stemi:{qrs:[[0,0],[15,-0.5],[38,8],[58,1],[75,3.5]],st:[[75,3.5],[120,4.8],[170,5.6],[220,5],[270,3],[320,0.8],[350,0]]},
+  peri:{pre:[[-95,0],[-85,-0.8],[-8,-0.8],[0,0]],qrs:[[0,0],[15,-0.5],[40,9],[62,-1.5],[85,1.5]],st:[[85,1.5],[150,1.8],[330,0]],tc:250,tw:40,ta:3.5},
+  wellens:{qrs:[[0,0],[15,-0.5],[40,7],[65,-4],[90,0]],st:[[90,0],[150,0.6],[195,1.7],[235,0],[280,-2.6],[330,-1.6],[380,0]]},
+  brugada:{qrs:[[0,0],[18,1.5],[40,-3.5],[62,0],[80,5]],st:[[80,5],[110,4.6],[160,3.4],[210,1.5],[250,-0.8],[290,-1.8],[340,-1],[380,0]]},
+  digox:{qrs:[[0,0],[15,-1],[40,10],[65,-3],[90,-0.3]],st:[[90,-0.3],[130,-1.4],[180,-1.7],[220,-1],[250,0.5],[280,0.4],[300,0]]},
+  hyperk:{qrs:[[0,0],[15,-0.5],[40,8],[62,-2.5],[85,0]],st:[[85,0],[150,0.5],[212,8],[275,0]]},
+  hypok:{qrs:[[0,0],[15,-1],[40,10],[65,-3],[90,-0.8]],st:[[90,-0.8],[200,-0.8],[250,0]],tc:240,tw:40,ta:1,ua:1.7},
+  longqt:{qrs:[[0,0],[15,-1],[40,10],[65,-3],[90,0]],tc:440,tw:50,ta:3},
+  shortqt:{qrs:[[0,0],[15,-1],[40,10],[65,-3],[90,0]],tc:175,tw:30,ta:3},
+  osborn:{qrs:[[0,0],[15,-1],[40,9],[62,-2],[78,0],[100,3.5],[135,0.3],[160,0]],tc:340,tw:45,ta:2}
+};
+function mv(r,m){var v=lin(r,m.qrs)+lin(r,m.st)+lin(r,m.pre); if(m.ta)v+=G(r,m.tc,m.tw,m.ta); if(m.ua)v+=G(r,m.tc+170,32,m.ua); return v;}
+function beats(times,m){return times.map(function(t){return {t:t,m:m};});}
+var S={
+  annot:{dur:720,h:84,base:52,p:[110],b:beats([220],M.N),lead:'D2',annot:true},
+  sinus:{dur:2400,p:[100,900,1700],b:beats([210,1010,1810],M.N),lead:'D2'},
+  af:{dur:2400,b:beats([120,640,1020,1690,2050],M.N),lead:'D2',f:function(t){return 0.35*Math.sin(2*Math.PI*t/140)+0.25*Math.sin(2*Math.PI*t/97+1.3)+0.18*Math.sin(2*Math.PI*t/61+0.4);}},
+  flutter:{dur:2400,b:beats([300,1100,1900],M.N),lead:'D2',f:function(t){var x=((t+40)%200)/200; return x<0.72?1.1-(x/0.72)*2.6:-1.5+((x-0.72)/0.28)*2.6;}},
+  wpw:{dur:720,p:[160],b:beats([220],M.wpw),lead:'V4'},
+  bav1:{dur:2400,p:[80,1080],b:beats([400,1400],M.N),lead:'D2'},
+  mob1:{dur:3400,p:[80,880,1680,2480,3280],b:[{t:190,m:M.N},{t:1090,m:M.N},{t:1970,m:M.N}],lead:'D2'},
+  mob2:{dur:3400,p:[80,880,1680,2480,3280],b:beats([210,1010,2610],M.wide),lead:'D2'},
+  bav3:{dur:3400,p:[60,740,1420,2100,2780],b:beats([260,1860],M.wide),lead:'D2'},
+  rbbb:{dur:720,p:[110],b:beats([220],M.rbbb),lead:'V1'},
+  lbbb:{dur:720,p:[110],b:beats([220],M.lbbb),lead:'V6'},
+  stemi:{dur:720,p:[110],b:beats([220],M.stemi),lead:'V2'},
+  peri:{dur:720,p:[90],b:beats([240],M.peri),lead:'D2'},
+  wellens:{dur:720,p:[110],b:beats([220],M.wellens),lead:'V2'},
+  brugada:{dur:720,p:[110],pa:1,b:beats([220],M.brugada),lead:'V1'},
+  digox:{dur:720,p:[110],b:beats([220],M.digox),lead:'V5'},
+  hyperk:{dur:720,p:[110],pa:0.6,b:beats([220],M.hyperk),lead:'V3'},
+  hypok:{dur:720,p:[90],b:beats([200],M.hypok),lead:'V3'},
+  longqt:{dur:880,p:[110],b:beats([220],M.longqt),lead:'D2'},
+  shortqt:{dur:720,p:[110],b:beats([220],M.shortqt),lead:'D2'},
+  osborn:{dur:880,p:[110],b:beats([220],M.osborn),lead:'V4'}
+};
+var NS='http://www.w3.org/2000/svg';
+function el(n,a,txt){var e=document.createElementNS(NS,n); for(var k in a)e.setAttribute(k,a[k]); if(txt)e.textContent=txt; return e;}
+function draw(svg,s){
+  var W=s.dur/10,H=s.h||64,base=s.base||44;
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  var g=el('g',{});
+  for(var x=0;x<=W+0.01;x+=4){g.appendChild(el('line',{x1:x,y1:0,x2:x,y2:H,'class':(Math.round(x)%20===0)?'gmaj':'gmin'}));}
+  for(var y=base%4;y<=H;y+=4){var maj=Math.abs(((y-base)/4)%5)<0.01; g.appendChild(el('line',{x1:0,y1:y,x2:W,y2:y,'class':maj?'gmaj':'gmin'}));}
+  svg.appendChild(g);
+  var pts=[],pa=(s.pa!=null)?s.pa:1.5;
+  for(var t=0;t<=s.dur;t+=2){
+    var v=0;
+    (s.p||[]).forEach(function(c){v+=G(t,c,20,pa);});
+    (s.b||[]).forEach(function(b){var r=t-b.t; if(r>-150&&r<800)v+=mv(r,b.m);});
+    if(s.f)v+=s.f(t);
+    var yy=Math.max(1,Math.min(H-1,base-v*4));
+    pts.push((t/10).toFixed(1)+','+yy.toFixed(2));
+  }
+  svg.appendChild(el('polyline',{points:pts.join(' '),'class':'tr'}));
+  if(s.lead)svg.appendChild(el('text',{x:2,y:6,'class':'lead'},s.lead));
+  if(s.annot){
+    var q=22.0, ps=6.0, qe=31.0, te=56.5, b=base;
+    function br(x1,x2,yy,lab){svg.appendChild(el('path',{d:'M'+x1+' '+(yy-1.5)+'V'+yy+'H'+x2+'V'+(yy-1.5),'class':'ann'})); svg.appendChild(el('text',{x:(x1+x2)/2,y:yy+4,'class':'annt','text-anchor':'middle'},lab));}
+    br(ps,q,b+16,'PR');
+    br(q,qe,b+16,'QRS');
+    br(q,te,b+26,'QT');
+    svg.appendChild(el('text',{x:11,y:b-9,'class':'mark','text-anchor':'middle'},'P'));
+    svg.appendChild(el('text',{x:26,y:b-43,'class':'mark','text-anchor':'middle'},'R'));
+    svg.appendChild(el('text',{x:23,y:b+9,'class':'mark','text-anchor':'middle'},'Q'));
+    svg.appendChild(el('text',{x:47,y:b-16,'class':'mark','text-anchor':'middle'},'T'));
+    svg.appendChild(el('text',{x:37,y:b-4,'class':'annt','text-anchor':'middle'},'ST'));
+  }
+}
+document.querySelectorAll('svg[data-ecg]').forEach(function(svg){var s=S[svg.getAttribute('data-ecg')]; if(s)draw(svg,s);});
+
+/* ---------- modalità ripasso ---------- */
+var btn=document.getElementById('quizToggle');
+function set(on){
+  document.body.classList.toggle('quiz',on);
+  btn.setAttribute('aria-pressed',on?'true':'false');
+  btn.textContent=on?'Ripasso attivo':'Modalità ripasso';
+  if(!on){document.querySelectorAll('.ans.shown').forEach(function(e){e.classList.remove('shown');});}
+  try{localStorage.setItem('quiz',on?'1':'0');}catch(e){}
+}
+btn.addEventListener('click',function(){set(!document.body.classList.contains('quiz'));});
+document.addEventListener('click',function(ev){
+  if(!document.body.classList.contains('quiz'))return;
+  var a=ev.target.closest('.ans'); if(!a)return;
+  if(!a.classList.contains('shown')){ev.preventDefault();a.classList.add('shown');}
+});
+var saved=null; try{saved=localStorage.getItem('quiz');}catch(e){}
+if(saved==='1')set(true);
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+SCHEDE CLINICHE - web app per iPhone
+
+Contenuto: index.html (schermata iniziale), 4 schede, manifest, service worker (offline), icone.
+
+PUBBLICAZIONE (una volta sola, gratis)
+Opzione A - Netlify Drop
+ 1. Da computer apri https://app.netlify.com/drop e crea un account gratuito.
+ 2. Trascina nella pagina la cartella "schede-app" (non lo zip).
+ 3. Otterrai un indirizzo del tipo https://nome-casuale.netlify.app
+
+Opzione B - GitHub Pages
+ 1. Crea un repository pubblico e carica il contenuto della cartella.
+ 2. Settings > Pages > Deploy from branch (main, /root).
+
+INSTALLAZIONE SU IPHONE
+ 1. Apri l'indirizzo in Safari.
+ 2. Condividi > Aggiungi alla schermata Home.
+ 3. Aprila una volta con la connessione attiva: da quel momento funziona anche offline.
+
+AGGIORNAMENTI
+Se le schede cambiano, sostituisci i file e cambia la riga VERSION in sw.js:
+alla successiva apertura con connessione l'app scarica la nuova versione.
+
+Nota: il sito pubblicato e' pubblico (chi conosce l'indirizzo puo' aprirlo).
+Le schede non contengono dati personali.

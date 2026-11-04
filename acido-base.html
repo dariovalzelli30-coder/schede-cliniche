@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Schede">
+<meta name="theme-color" content="#F3F6F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1619" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<title>Equilibrio acido-base</title>
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);-webkit-text-size-adjust:100%}
+body{margin:0;font-size:14px;-webkit-tap-highlight-color:transparent}
+img{max-width:100%}
+[hidden]{display:none!important}
+.homebar{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-family:var(--f-body);font-weight:600;font-size:.9rem;color:var(--accent);padding:6px 0}
+.homebar:active{opacity:.6}
+</style>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+</script>
+</head>
+<body>
+<style>
+/* Layout: scheda gemella di "Elettroliti in schema" — stessa griglia; codice colore: acidosi = rosso, alcalosi = blu, volume extracellulare = ambra/verde/indaco */
+:root{
+  --bg:#F3F6F6; --surface:#FFFFFF; --sunk:#E8EEEF; --ink:#13232A; --muted:#55666D; --line:#CFDADC;
+  --accent:#0E6673; --accent-soft:#D9ECEE;
+  --acid:#B0432B; --acid-soft:#F7E4DF;
+  --alk:#2B5FAE; --alk-soft:#E1EAF7;
+  --vol-ipo:#9A6410; --vol-ipo-soft:#F5EAD6;
+  --vol-eu:#2F7466; --vol-eu-soft:#DCEFEA;
+  --vol-iper:#4B4FA6; --vol-iper-soft:#E5E5F6;
+  --warn:#8A2B1E;
+  --f-display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;
+  --f-body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --acid:#EE9580; --acid-soft:#3A221D; --alk:#86AEEB; --alk-soft:#1A2A42;
+  --vol-ipo:#E2AE5A; --vol-ipo-soft:#352914; --vol-eu:#71C3AF; --vol-eu-soft:#15322B;
+  --vol-iper:#A6A9F0; --vol-iper-soft:#24254A; --warn:#F2A193; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --acid:#EE9580; --acid-soft:#3A221D; --alk:#86AEEB; --alk-soft:#1A2A42;
+  --vol-ipo:#E2AE5A; --vol-ipo-soft:#352914; --vol-eu:#71C3AF; --vol-eu-soft:#15322B;
+  --vol-iper:#A6A9F0; --vol-iper-soft:#24254A; --warn:#F2A193; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.9rem,4.5vw,2.8rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.7rem;font-weight:700}
+h3{font-size:1.15rem;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+ul{margin:0;padding-left:1.1em}
+li+li{margin-top:.15em}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:.9em}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.label{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;font-weight:600;color:var(--muted)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{padding-block:28px 20px;display:grid;gap:12px}
+.lede{max-width:66ch;color:var(--muted)}
+nav.chips{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+nav.chips .wrap{display:flex;gap:8px;align-items:center;overflow-x:auto;padding-block:10px;scrollbar-width:thin}
+nav.chips a{flex:none;text-decoration:none;color:var(--ink);font-family:var(--f-mono);font-size:.85rem;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg)}
+nav.chips a:hover{border-color:var(--accent);color:var(--accent)}
+.toggle{flex:none;margin-left:auto;display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:999px;padding:4px 12px;font-family:var(--f-body);font-weight:600}
+.toggle[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+
+main .wrap{display:grid;gap:56px;padding-block:32px 64px}
+section{display:grid;gap:20px;scroll-margin-top:64px}
+.sec-head{display:grid;gap:6px;border-top:3px solid var(--ink);padding-top:14px}
+.sec-head .sym{font-family:var(--f-mono);font-weight:600;font-size:.9rem}
+.sym.acid{color:var(--acid)} .sym.alk{color:var(--alk)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:10px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.93rem;min-width:560px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.num{white-space:nowrap}
+td.acid{color:var(--acid);font-weight:600} td.alk{color:var(--alk);font-weight:600}
+
+/* flow */
+.flow{display:grid;gap:0;justify-items:center}
+.node{width:100%;max-width:680px;background:var(--surface);border:1.5px solid var(--ink);border-radius:8px;padding:10px 14px;text-align:center;display:grid;gap:4px}
+.node .q{font-family:var(--f-display);font-weight:600}
+.arrow{width:2px;height:22px;background:var(--ink);position:relative}
+.arrow::after{content:"";position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--ink);border-bottom:0}
+.branches{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;position:relative;padding-top:20px;margin-bottom:22px}
+.branches::before{content:"";position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--ink)}
+.branches>*{position:relative}
+.branches>*::before{content:"";position:absolute;top:-20px;left:50%;width:2px;height:20px;background:var(--ink)}
+.branches.last{margin-bottom:0}
+.leaf{border-radius:8px;padding:12px 14px;border:1.5px solid var(--line);background:var(--surface);display:grid;gap:10px;align-content:start;min-width:0}
+.leaf .tag{font-family:var(--f-mono);font-size:.82rem;font-weight:600}
+.leaf.go{border-color:var(--ink)}
+.box{border-width:2px;padding:0;overflow:hidden}
+.box>.vh{padding:10px 14px;display:grid;gap:2px}
+.box>.vb{padding:0 14px 14px;display:grid;gap:10px}
+.box.acid{border-color:var(--acid)} .box.acid>.vh{background:var(--acid-soft)} .box.acid h3{color:var(--acid)}
+.box.alk{border-color:var(--alk)} .box.alk>.vh{background:var(--alk-soft)} .box.alk h3{color:var(--alk)}
+.box.ipo{border-color:var(--vol-ipo)} .box.ipo>.vh{background:var(--vol-ipo-soft)} .box.ipo h3{color:var(--vol-ipo)}
+.box.iper{border-color:var(--vol-iper)} .box.iper>.vh{background:var(--vol-iper-soft)} .box.iper h3{color:var(--vol-iper)}
+.box.eu{border-color:var(--vol-eu)} .box.eu>.vh{background:var(--vol-eu-soft)} .box.eu h3{color:var(--vol-eu)}
+.una{display:grid;gap:4px;border-left:3px solid var(--line);padding-left:10px}
+.una .k{font-family:var(--f-mono);font-size:.82rem;font-weight:600}
+.tx{font-size:.9rem;background:var(--sunk);border-radius:6px;padding:8px 10px}
+.tx b{font-family:var(--f-display);font-weight:600}
+@media (max-width:760px){
+  .branches{grid-template-columns:1fr;padding-top:0;gap:10px}
+  .branches::before,.branches>*::before{display:none}
+}
+
+/* quadrant */
+.quad{display:grid;grid-template-columns:auto repeat(2,minmax(0,1fr));gap:6px;max-width:680px;width:100%}
+.quad .h{font-family:var(--f-display);font-weight:600;font-size:.82rem;color:var(--muted);display:flex;align-items:center;justify-content:center;text-align:center;padding:4px}
+.quad .c{border-radius:8px;padding:10px 12px;display:grid;gap:2px;border:1.5px solid}
+.quad .c.acid{background:var(--acid-soft);border-color:var(--acid)} .quad .c.alk{background:var(--alk-soft);border-color:var(--alk)}
+.quad .c b{font-family:var(--f-display)}
+.quad .c.acid b{color:var(--acid)} .quad .c.alk b{color:var(--alk)}
+
+/* paired */
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.side{border-radius:10px;border:1.5px solid var(--line);background:var(--surface);display:grid;align-content:start;overflow:hidden;min-width:0}
+.side>.sh{padding:12px 16px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.side>.sb{padding:4px 16px 16px;display:grid;gap:14px}
+.side.acid{border-color:var(--acid)} .side.acid>.sh{background:var(--acid-soft)} .side.acid h3{color:var(--acid)}
+.side.alk{border-color:var(--alk)} .side.alk>.sh{background:var(--alk-soft)} .side.alk h3{color:var(--alk)}
+.mech{display:grid;gap:4px}
+
+.formula{font-family:var(--f-mono);font-size:.92rem;background:var(--sunk);border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+.steps{counter-reset:s;display:grid;gap:10px;list-style:none;padding:0;margin:0}
+.steps li{counter-increment:s;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;margin:0}
+.steps li::before{content:counter(s);font-family:var(--f-mono);font-weight:600;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-size:.8rem}
+.alert{border-left:4px solid var(--warn);background:var(--acid-soft);border-radius:0 8px 8px 0;padding:10px 14px;display:grid;gap:4px}
+.alert strong{color:var(--warn);font-family:var(--f-display)}
+.geri{border:1.5px dashed var(--accent);background:var(--accent-soft);border-radius:10px;padding:14px 16px;display:grid;gap:8px}
+.geri .label{color:var(--accent)}
+.cite{font-size:.78rem;color:var(--muted)}
+
+/* goldmark */
+.gm{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px}
+.gm div{background:var(--sunk);border-radius:6px;padding:6px 8px;display:grid;gap:0}
+.gm b{font-family:var(--f-mono);font-size:1.1rem;color:var(--acid)}
+.gm span{font-size:.8rem;line-height:1.3}
+
+/* delta scale */
+.dscale{display:grid;grid-template-columns:1fr 1fr 1fr;border-radius:8px;overflow:hidden;border:1.5px solid var(--ink)}
+.dscale>div{padding:10px 12px;display:grid;gap:4px;align-content:start}
+.dscale>div+div{border-left:1.5px solid var(--ink)}
+.dscale .r{font-family:var(--f-mono);font-weight:600}
+.dscale .z1{background:var(--vol-eu-soft)} .dscale .z2{background:var(--acid-soft)} .dscale .z3{background:var(--alk-soft)}
+@media (max-width:560px){.dscale{grid-template-columns:1fr}.dscale>div+div{border-left:0;border-top:1.5px solid var(--ink)}}
+
+/* worked example */
+.ex{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px}
+.ex div{background:var(--sunk);border-radius:6px;padding:6px 10px;display:grid}
+.ex .v{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums}
+
+body.quiz .ans{filter:blur(6px);cursor:pointer;user-select:none;transition:filter .15s}
+body.quiz .ans.shown{filter:none;user-select:auto}
+@media (prefers-reduced-motion:reduce){body.quiz .ans{transition:none}}
+
+ol.refs{display:grid;gap:6px;padding-left:1.4em;font-size:.88rem}
+ol.refs li{margin:0}
+footer .wrap{padding-block:20px 40px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a class="homebar" href="index.html" aria-label="Torna all'elenco delle schede">&#8249; Schede</a>
+    <span class="label">Scheda di ripasso · medicina interna / geriatria</span>
+    <h1>Equilibrio acido-base</h1>
+    <p class="lede">Lettura dell'emogasanalisi in 6 passi, compensi attesi e algoritmi di diagnosi differenziale per ogni disturbo primario. Approccio "fisiologico" basato su bicarbonato e PaCO₂. Con <b>Modalità ripasso</b> cause e interpretazioni vengono oscurate: tocca per scoprirle.</p>
+  </div>
+</header>
+
+<nav class="chips" aria-label="Sezioni">
+  <div class="wrap">
+    <a href="#rif">Valori</a>
+    <a href="#metodo">6 passi</a>
+    <a href="#compensi">Compensi</a>
+    <a href="#acmet">Acidosi met.</a>
+    <a href="#almet">Alcalosi met.</a>
+    <a href="#resp">Respiratorie</a>
+    <a href="#misti">Misti</a>
+    <a href="#esempio">Esempio</a>
+    <a href="#fonti">Fonti</a>
+    <button class="toggle" id="quizToggle" type="button" aria-pressed="false">Modalità ripasso</button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- VALORI -->
+<section id="rif">
+  <div class="sec-head"><span class="label">Sangue arterioso, adulto (indicativi: dipendono dal laboratorio)</span><h2>Valori di riferimento</h2></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Parametro</th><th>Normale</th><th>Nota</th></tr></thead>
+      <tbody>
+        <tr><td>pH</td><td class="num">7,35–7,45</td><td>&lt; 7,35 acidemia · &gt; 7,45 alcalemia</td></tr>
+        <tr><td>PaCO₂</td><td class="num">35–45 mmHg</td><td>Componente respiratoria (riferimento: 40)</td></tr>
+        <tr><td>HCO₃⁻</td><td class="num">22–26 mmol/L</td><td>Componente metabolica (riferimento: 24)</td></tr>
+        <tr><td>Gap anionico (AG)</td><td class="num">≈ 12 ± 2 mmol/L</td><td>Na − (Cl + HCO₃). Molto variabile tra laboratori: usare il range locale [4]</td></tr>
+        <tr><td>Albumina (per correggere l'AG)</td><td class="num">4,0 g/dL</td><td>Ogni −1 g/dL abbassa l'AG di ≈ 2,5 [5]</td></tr>
+        <tr><td>Gap osmolare</td><td class="num">&lt; 10 mOsm/kg</td><td>Osm misurata − (2·Na + glucosio/18 + BUN/2,8) [6]</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- METODO -->
+<section id="metodo">
+  <div class="sec-head"><span class="label">Sempre nello stesso ordine</span><h2>Lettura dell'EGA in 6 passi</h2>
+    <p class="muted small">Sequenza secondo Berend et al. (NEJM 2014) [1]; regole di compenso da Adrogué &amp; Madias [2].</p></div>
+
+  <div class="flow">
+    <div class="node"><span class="label">Passo 1 · coerenza dei dati</span>
+      <span class="q">[H⁺] = 24 × PaCO₂ / HCO₃⁻</span>
+      <span class="small muted">[H⁺] in nEq/L. Tra pH 7,20 e 7,50: [H⁺] ≈ 80 − le ultime due cifre del pH (pH 7,25 → ≈ 55). Se il calcolo non torna, l'EGA ha un errore [1].</span></div>
+    <div class="arrow"></div>
+    <div class="node"><span class="label">Passo 2 · pH</span><span class="q">Acidemia o alcalemia?</span><span class="small muted">pH normale non esclude un disturbo: possono coesistere due disturbi opposti.</span></div>
+    <div class="arrow"></div>
+    <div class="node"><span class="label">Passo 3 · disturbo primario</span><span class="q">Quale variabile spiega la direzione del pH?</span>
+      <div class="quad" style="margin-top:6px">
+        <div></div><div class="h">HCO₃⁻ alterato</div><div class="h">PaCO₂ alterata</div>
+        <div class="h">pH ↓</div>
+        <div class="c acid"><b>Acidosi metabolica</b><span class="small mono">HCO₃⁻ ↓</span></div>
+        <div class="c acid"><b>Acidosi respiratoria</b><span class="small mono">PaCO₂ ↑</span></div>
+        <div class="h">pH ↑</div>
+        <div class="c alk"><b>Alcalosi metabolica</b><span class="small mono">HCO₃⁻ ↑</span></div>
+        <div class="c alk"><b>Alcalosi respiratoria</b><span class="small mono">PaCO₂ ↓</span></div>
+      </div>
+      <span class="small muted">Nei disturbi semplici HCO₃⁻ e PaCO₂ si muovono nella <b>stessa direzione</b> (il compenso segue il primario). Se vanno in direzioni opposte → disturbo misto certo.</span>
+    </div>
+    <div class="arrow"></div>
+    <div class="node"><span class="label">Passo 4 · compenso</span><span class="q">Il compenso è quello atteso? (tabella sotto)</span><span class="small muted">Fuori range → secondo disturbo associato. Il compenso non riporta mai il pH a 7,40 da solo [2].</span></div>
+    <div class="arrow"></div>
+    <div class="node"><span class="label">Passo 5 · gap anionico (sempre, anche con pH normale)</span><span class="q">AG = Na⁺ − (Cl⁻ + HCO₃⁻)</span><span class="small muted">AG corretto = AG + 2,5 × (4,0 − albumina g/dL) [5]. L'ipoalbuminemia (frequente nell'anziano) maschera un AG elevato.</span></div>
+    <div class="arrow"></div>
+    <div class="node"><span class="label">Passo 6 · se AG elevato</span><span class="q">Delta ratio (ΔAG/ΔHCO₃⁻) e gap osmolare</span><span class="small muted">Cerca un disturbo metabolico nascosto e le intossicazioni da alcoli tossici [6][7].</span></div>
+  </div>
+</section>
+
+<!-- COMPENSI -->
+<section id="compensi">
+  <div class="sec-head"><span class="label">Passo 4</span><h2>Compensi attesi</h2>
+    <p class="muted small">Coefficienti di Adrogué &amp; Madias [2]; formula di Winters per l'acidosi metabolica [3]; regola rapida per l'alcalosi metabolica da Emmett [8]. Il compenso respiratorio inizia in minuti; quello renale si completa in 2–5 giorni [2].</p></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Disturbo primario</th><th>Compenso</th><th>Atteso</th><th>Scorciatoia</th></tr></thead>
+      <tbody>
+        <tr><td class="acid">Acidosi metabolica</td><td>PaCO₂ ↓</td><td class="num ans">ΔPaCO₂ ≈ 1,2 × ΔHCO₃⁻</td><td class="num ans">Winters: PaCO₂ = 1,5·HCO₃⁻ + 8 ± 2</td></tr>
+        <tr><td class="alk">Alcalosi metabolica</td><td>PaCO₂ ↑</td><td class="num ans">ΔPaCO₂ ≈ 0,7 × ΔHCO₃⁻</td><td class="num ans">PaCO₂ ≈ HCO₃⁻ + 10 (HCO₃ 30–50)</td></tr>
+        <tr><td class="acid">Acidosi respiratoria acuta</td><td>HCO₃⁻ ↑</td><td class="num ans">+1 per ogni +10 mmHg</td><td class="num ans">ΔHCO₃⁻ = 0,1 × ΔPaCO₂</td></tr>
+        <tr><td class="acid">Acidosi respiratoria cronica</td><td>HCO₃⁻ ↑</td><td class="num ans">+3,5 per ogni +10 mmHg</td><td class="num ans">ΔHCO₃⁻ = 0,35 × ΔPaCO₂</td></tr>
+        <tr><td class="alk">Alcalosi respiratoria acuta</td><td>HCO₃⁻ ↓</td><td class="num ans">−2 per ogni −10 mmHg</td><td class="num ans">ΔHCO₃⁻ = 0,2 × ΔPaCO₂</td></tr>
+        <tr><td class="alk">Alcalosi respiratoria cronica</td><td>HCO₃⁻ ↓</td><td class="num ans">−4 per ogni −10 mmHg</td><td class="num ans">ΔHCO₃⁻ = 0,4 × ΔPaCO₂</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid2">
+    <div class="card"><span class="label">Come leggere il risultato</span>
+      <ul class="small ans">
+        <li>PaCO₂ misurata <b>più alta</b> dell'attesa (nei metabolici) → acidosi respiratoria associata.</li>
+        <li>PaCO₂ misurata <b>più bassa</b> dell'attesa → alcalosi respiratoria associata.</li>
+        <li>HCO₃⁻ misurato <b>più alto</b> dell'atteso (nei respiratori) → alcalosi metabolica associata (o forma cronica).</li>
+        <li>HCO₃⁻ misurato <b>più basso</b> dell'atteso → acidosi metabolica associata.</li>
+      </ul>
+    </div>
+    <div class="card"><span class="label">Memo</span>
+      <p class="small">Nei respiratori il rene compensa <b>poco</b> in acuto (0,1 / 0,2) e <b>molto</b> in cronico (0,35 / 0,4). Un HCO₃⁻ "da cronico" in un paziente acutamente peggiorato suggerisce un'acuzie su BPCO ipercapnica.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ACIDOSI METABOLICA -->
+<section id="acmet">
+  <div class="sec-head"><span class="sym acid">pH ↓ · HCO₃⁻ ↓</span><h2>Acidosi metabolica</h2>
+    <p class="muted small">Il bivio è il gap anionico (corretto per albumina): aggiunta di un acido non misurato (AG ↑) oppure perdita di bicarbonato / mancata escrezione di acido con ritenzione di cloro (AG normale, ipercloremica) [1][4].</p></div>
+
+  <div class="flow">
+    <div class="node"><span class="q">Gap anionico corretto per albumina</span></div>
+    <div class="arrow"></div>
+    <div class="branches last">
+      <!-- HAGMA -->
+      <div class="leaf box acid">
+        <div class="vh"><h3>AG elevato</h3><span class="small">Acido non misurato in eccesso</span></div>
+        <div class="vb">
+          <span class="label">GOLDMARK [9]</span>
+          <div class="gm ans">
+            <div><b>G</b><span>Glicoli (etilenglicole, propilenglicole)</span></div>
+            <div><b>O</b><span>5-Ossoprolina (paracetamolo cronico)</span></div>
+            <div><b>L</b><span>L-lattato</span></div>
+            <div><b>D</b><span>D-lattato (intestino corto)</span></div>
+            <div><b>M</b><span>Metanolo</span></div>
+            <div><b>A</b><span>Aspirina (salicilati)</span></div>
+            <div><b>R</b><span>Insufficienza renale</span></div>
+            <div><b>K</b><span>Chetoacidosi (diabetica, alcolica, digiuno)</span></div>
+          </div>
+          <span class="label">Esami in sequenza</span>
+          <ol class="steps small ans">
+            <li><span><b>Lattato</b> ↑ → tipo A (ipoperfusione/ipossia: shock, ischemia mesenterica, anemia severa, CO) o tipo B (metformina, linezolid, propofol, insufficienza epatica, neoplasie, deficit di tiamina) [10].</span></li>
+            <li><span><b>Chetoni</b> (β-idrossibutirrato) + glicemia → DKA, chetoacidosi alcolica o da digiuno.</span></li>
+            <li><span><b>Creatinina/urea</b> → acidosi uremica.</span></li>
+            <li><span><b>Gap osmolare &gt; 10</b> → metanolo, etilenglicole. Un gap normale non li esclude nelle fasi tardive, quando l'alcol è già metabolizzato [6].</span></li>
+            <li><span><b>Salicilemia</b> se alcalosi respiratoria associata; <b>5-ossoprolina urinaria</b> se nulla spiega l'AG.</span></li>
+          </ol>
+        </div>
+      </div>
+      <!-- NAGMA -->
+      <div class="leaf box eu">
+        <div class="vh"><h3>AG normale (ipercloremica)</h3><span class="small">Perdita di HCO₃⁻ o difetto di escrezione acida</span></div>
+        <div class="vb">
+          <div class="una"><span class="k">Anamnesi prima di tutto</span><div class="ans small">Diarrea, fistole pancreatiche/biliari, derivazioni urinarie intestinali, grandi volumi di NaCl 0,9%, acetazolamide, IRC iniziale-moderata.</div></div>
+          <div class="una"><span class="k">AG urinario = Na_u + K_u − Cl_u [11]</span>
+            <div class="ans small" style="display:grid;gap:4px">
+              <p><b>Negativo (−20 / −50)</b> → escrezione di NH₄⁺ adeguata → <b>perdita GI</b> di bicarbonato.</p>
+              <p><b>Positivo o poco negativo</b> → NH₄⁺ basso → <b>difetto renale (ATR)</b>.</p>
+            </div></div>
+          <p class="cite">Limiti: inaffidabile se Na urinario &lt; 25 mmol/L o con anioni urinari non misurati (chetoni, ippurato). Alternativa: gap osmolare urinario o NH₄⁺ urinario diretto [11].</p>
+          <div class="tbl-wrap" style="border-radius:6px">
+            <table style="min-width:420px;font-size:.85rem">
+              <thead><tr><th>ATR</th><th>K⁺</th><th>pH urinario</th><th>Indizi</th></tr></thead>
+              <tbody class="ans">
+                <tr><td>Tipo 1 distale</td><td>↓</td><td class="num">&gt; 5,5</td><td>Nefrocalcinosi, calcolosi, citraturia ↓; Sjögren, farmaci (amfotericina)</td></tr>
+                <tr><td>Tipo 2 prossimale</td><td>↓</td><td class="num">&lt; 5,5 se HCO₃ basso</td><td>Fanconi: glicosuria, aminoaciduria, fosfaturia; mieloma, tenofovir, acetazolamide</td></tr>
+                <tr><td>Tipo 4 (ipoaldo)</td><td>↑</td><td class="num">&lt; 5,5</td><td>Diabete, IRC, ACE-i/sartani, anti-MR, FANS, trimetoprim, eparina</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="cite">Caratteristiche delle ATR e farmaci associati: Kraut &amp; Madias [11].</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ALCALOSI METABOLICA -->
+<section id="almet">
+  <div class="sec-head"><span class="sym alk">pH ↑ · HCO₃⁻ ↑</span><h2>Alcalosi metabolica</h2>
+    <p class="muted small">Per mantenersi serve che il rene non elimini il bicarbonato in eccesso: deplezione di cloro e di volume, deficit di K⁺ o eccesso di mineralcorticoidi. Il bivio è il <b>cloro urinario</b> (più affidabile del Na urinario, che può salire per bicarbonaturia) [8].</p></div>
+
+  <div class="flow">
+    <div class="node"><span class="q">Cloro urinario + volume extracellulare + pressione arteriosa</span></div>
+    <div class="arrow"></div>
+    <div class="branches last">
+      <div class="leaf box ipo">
+        <div class="vh"><h3>Cl urinario &lt; 20 mmol/L</h3><span class="small">ECF contratto · "cloro-responsiva"</span></div>
+        <div class="vb">
+          <div class="ans small"><ul>
+            <li>Vomito, aspirazione naso-gastrica</li>
+            <li>Diuretici <b>sospesi</b> (effetto esaurito)</li>
+            <li>Post-ipercapnica (correzione rapida di un'acidosi respiratoria cronica)</li>
+            <li>Adenoma villoso, cloridorrea congenita, fibrosi cistica</li>
+          </ul></div>
+          <div class="tx ans"><b>Terapia:</b> NaCl 0,9% + KCl; sospendere la perdita; IPP/anti-H2 se l'aspirazione gastrica deve continuare [8].</div>
+        </div>
+      </div>
+      <div class="leaf box iper">
+        <div class="vh"><h3>Cl urinario &gt; 20 mmol/L</h3><span class="small">"Cloro-resistente": guarda volume e PA</span></div>
+        <div class="vb">
+          <div class="una"><span class="k">ECF espanso, ipertensione</span><div class="ans small">Iperaldosteronismo primario, Cushing (soprattutto ACTH ectopico), mineralcorticoidi esogeni, liquirizia, tumori secernenti renina, Liddle.</div></div>
+          <div class="una"><span class="k">ECF contratto, normotensione</span><div class="ans small">Diuretici <b>in corso</b> (tiazidici, dell'ansa), Bartter, Gitelman. Cl urinario che oscilla molto → sospettare uso occulto di diuretici.</div></div>
+          <div class="una"><span class="k">Altre</span><div class="ans small">Deficit severo di K⁺, sindrome latte-alcali, carico di bicarbonato con GFR ridotto, rialimentazione dopo digiuno.</div></div>
+          <div class="tx ans"><b>Terapia:</b> trattare la causa (es. surrenectomia, anti-MR); se il diuretico è indispensabile: risparmiatore di K⁺ o acetazolamide (con supplementazione di K⁺) [8].</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="cite">Classificazione e cause: Emmett, CJASN 2020 [8].</p>
+</section>
+
+<!-- RESPIRATORIE -->
+<section id="resp">
+  <div class="sec-head"><span class="sym">PaCO₂</span><h2>Disturbi respiratori</h2>
+    <p class="muted small">PaCO₂ dipende solo dalla ventilazione alveolare. Primo passo: è acuto o cronico (vedi compensi)? Il <b>gradiente alveolo-arterioso di O₂</b> distingue la malattia polmonare (gradiente ↑) dall'ipoventilazione "pura" con polmone sano (gradiente normale) [1].</p></div>
+  <div class="formula">P(A−a)O₂ = [FiO₂ × (Patm − 47) − PaCO₂/0,8] − PaO₂</div>
+  <p class="cite">In aria ambiente a livello del mare: PAO₂ ≈ 150 − PaCO₂/0,8. Il gradiente normale aumenta con l'età.</p>
+
+  <div class="pair">
+    <div class="side acid">
+      <div class="sh"><h3>Acidosi respiratoria</h3><span class="mono">PaCO₂ &gt; 45 · ipoventilazione</span></div>
+      <div class="sb">
+        <div class="mech"><h4>Gradiente A-a normale</h4><div class="small ans"><ul>
+          <li><b>SNC</b>: oppioidi, benzodiazepine, sedativi, ictus/emorragia del tronco, ipoventilazione centrale</li>
+          <li><b>Neuromuscolare</b>: Guillain-Barré, miastenia, SLA, ipoK/ipoP severe</li>
+          <li><b>Parete toracica</b>: cifoscoliosi, sindrome obesità-ipoventilazione</li>
+        </ul></div></div>
+        <div class="mech"><h4>Gradiente A-a aumentato</h4><div class="small ans"><ul>
+          <li>BPCO riacutizzata, asma severo (fase di esaurimento), polmonite estesa, edema polmonare grave, ARDS</li>
+          <li>Ostruzione delle vie aeree superiori</li>
+        </ul></div></div>
+        <div class="tx ans"><b>Approccio:</b> trattare la causa; antagonisti se farmaci (naloxone; flumazenil con cautela); supporto ventilatorio (NIV nella BPCO ipercapnica). Nell'ipercapnia cronica correggere lentamente per evitare l'alcalosi post-ipercapnica [1][8].</div>
+      </div>
+    </div>
+    <div class="side alk">
+      <div class="sh"><h3>Alcalosi respiratoria</h3><span class="mono">PaCO₂ &lt; 35 · iperventilazione</span></div>
+      <div class="sb">
+        <div class="mech"><h4>Ipossiemia / polmone</h4><div class="small ans"><ul>
+          <li>Embolia polmonare, polmonite, edema polmonare, interstiziopatie</li>
+          <li>Alta quota, anemia severa</li>
+        </ul></div></div>
+        <div class="mech"><h4>Stimolo centrale</h4><div class="small ans"><ul>
+          <li>Ansia, dolore, febbre</li>
+          <li><b>Sepsi</b> (fase precoce), <b>salicilati</b>, insufficienza epatica, gravidanza (progesterone)</li>
+          <li>Lesioni del SNC</li>
+        </ul></div></div>
+        <div class="mech"><h4>Iatrogena</h4><div class="small ans">Ventilazione meccanica con volume minuto eccessivo.</div></div>
+        <div class="tx ans"><b>Attenzione:</b> l'alcalosi respiratoria da iperventilazione "ansiosa" è una diagnosi di esclusione: prima escludere embolia polmonare e sepsi [1].</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MISTI -->
+<section id="misti">
+  <div class="sec-head"><span class="label">Passi 4 e 6</span><h2>Disturbi misti</h2></div>
+  <div class="card">
+    <span class="label">Delta ratio = (AG − 12) / (24 − HCO₃⁻) [7]</span>
+    <div class="dscale">
+      <div class="z2"><span class="r">&lt; 1</span><span class="small ans">HCO₃⁻ sceso più di quanto spiega l'AG → acidosi <b>ipercloremica associata</b> (es. diarrea + acidosi lattica).</span></div>
+      <div class="z1"><span class="r">1 – 2</span><span class="small ans">Acidosi ad AG elevato <b>pura</b>. Lattica tipicamente ≈ 1,6; chetoacidosi più vicina a 1 (perdita urinaria di chetoni).</span></div>
+      <div class="z3"><span class="r">&gt; 2</span><span class="small ans">HCO₃⁻ più alto dell'atteso → <b>alcalosi metabolica associata</b> (es. vomito + chetoacidosi) o compenso di un'acidosi respiratoria cronica.</span></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card"><span class="label">Indizi di disturbo misto [1][2]</span>
+      <ul class="small ans">
+        <li>Compenso fuori dal range atteso</li>
+        <li>HCO₃⁻ e PaCO₂ alterati in direzioni opposte</li>
+        <li>pH normale con HCO₃⁻ e PaCO₂ anormali</li>
+        <li>AG elevato con HCO₃⁻ normale o alto</li>
+      </ul>
+    </div>
+    <div class="card"><span class="label">Combinazioni classiche</span>
+      <ul class="small ans">
+        <li><b>Salicilati</b>: alcalosi respiratoria + acidosi ad AG elevato</li>
+        <li><b>Arresto cardiaco</b>: acidosi lattica + acidosi respiratoria</li>
+        <li><b>Vomito in DKA</b>: chetoacidosi + alcalosi metabolica (delta &gt; 2)</li>
+        <li><b>BPCO in diuretico</b>: acidosi respiratoria cronica + alcalosi metabolica</li>
+        <li><b>Cirrosi con sepsi</b>: alcalosi respiratoria + acidosi lattica</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- GERIATRIA -->
+<section>
+  <div class="geri">
+    <span class="label">Rilevanza geriatrica</span>
+    <ul class="small">
+      <li><b>ATR tipo 4</b> (acidosi ipercloremica con K⁺ alto): diabete, IRC e gli stessi farmaci dell'iperkaliemia (ACE-i/sartani, anti-MR, FANS, trimetoprim, eparina) [11].</li>
+      <li><b>Acidosi da 5-ossoprolina</b>: AG elevato senza causa evidente, in pazienti con uso cronico di paracetamolo e malnutrizione, sepsi o insufficienza renale, più spesso donne [12].</li>
+      <li><b>Metformina</b>: acidosi lattica di tipo B, soprattutto se compare insufficienza renale acuta o ipoperfusione [10].</li>
+      <li><b>Ipoalbuminemia</b>: senza correzione, l'AG sembra normale anche quando non lo è [5].</li>
+      <li><b>Benzodiazepine e oppioidi</b> nell'anziano con BPCO: acidosi respiratoria acuta su cronica [1].</li>
+      <li><b>Acidosi metabolica dell'IRC</b>: KDIGO 2024 suggerisce di considerare la terapia alcalinizzante se HCO₃⁻ &lt; 18 mmol/L [13].</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ESEMPIO -->
+<section id="esempio">
+  <div class="sec-head"><span class="label">Applicazione dei 6 passi</span><h2>Esempio guidato</h2>
+    <p class="muted small">Donna di 82 anni, sepsi urinaria, in metformina.</p></div>
+  <div class="ex">
+    <div><span class="label">pH</span><span class="v">7,25</span></div>
+    <div><span class="label">PaCO₂</span><span class="v">28 mmHg</span></div>
+    <div><span class="label">HCO₃⁻</span><span class="v">12 mmol/L</span></div>
+    <div><span class="label">Na⁺</span><span class="v">138</span></div>
+    <div><span class="label">Cl⁻</span><span class="v">100</span></div>
+    <div><span class="label">Albumina</span><span class="v">2,5 g/dL</span></div>
+  </div>
+  <ol class="steps small ans">
+    <li><span><b>Coerenza:</b> 24 × 28 / 12 = 56 nEq/L; 80 − 25 = 55. Dati coerenti.</span></li>
+    <li><span><b>pH 7,25:</b> acidemia.</span></li>
+    <li><span><b>Primario:</b> HCO₃⁻ ↓ → acidosi metabolica.</span></li>
+    <li><span><b>Compenso (Winters):</b> 1,5 × 12 + 8 = 26 ± 2 → atteso 24–28. Misurata 28: compenso adeguato, nessun disturbo respiratorio aggiunto.</span></li>
+    <li><span><b>AG:</b> 138 − (100 + 12) = 26. Corretto: 26 + 2,5 × (4,0 − 2,5) ≈ 30. Elevato.</span></li>
+    <li><span><b>Delta ratio:</b> (30 − 12) / (24 − 12) = 1,5 → acidosi ad AG elevato pura. Primo esame: lattato (sepsi + metformina).</span></li>
+  </ol>
+</section>
+
+<!-- FONTI -->
+<section id="fonti">
+  <div class="sec-head"><span class="label">Bibliografia</span><h2>Fonti</h2></div>
+  <ol class="refs">
+    <li>Berend K, de Vries APJ, Gans ROB. Physiological approach to assessment of acid–base disturbances. <i>N Engl J Med</i> 2014;371:1434–45. <a href="https://doi.org/10.1056/NEJMra1003327" target="_blank" rel="noopener">doi:10.1056/NEJMra1003327</a></li>
+    <li>Adrogué HJ, Madias NE. Secondary responses to altered acid–base status: the rules of engagement. <i>J Am Soc Nephrol</i> 2010;21:920–3. <a href="https://doi.org/10.1681/ASN.2009121211" target="_blank" rel="noopener">doi:10.1681/ASN.2009121211</a></li>
+    <li>Albert MS, Dell RB, Winters RW. Quantitative displacement of acid–base equilibrium in metabolic acidosis. <i>Ann Intern Med</i> 1967;66:312–22. <a href="https://doi.org/10.7326/0003-4819-66-2-312" target="_blank" rel="noopener">doi:10.7326/0003-4819-66-2-312</a></li>
+    <li>Kraut JA, Madias NE. Serum anion gap: its uses and limitations in clinical medicine. <i>Clin J Am Soc Nephrol</i> 2007;2:162–74. <a href="https://doi.org/10.2215/CJN.03020906" target="_blank" rel="noopener">doi:10.2215/CJN.03020906</a></li>
+    <li>Figge J, Jabor A, Kazda A, Fencl V. Anion gap and hypoalbuminemia. <i>Crit Care Med</i> 1998;26:1807–10. <a href="https://doi.org/10.1097/00003246-199811000-00019" target="_blank" rel="noopener">doi:10.1097/00003246-199811000-00019</a></li>
+    <li>Kraut JA, Kurtz I. Toxic alcohol ingestions: clinical features, diagnosis, and management. <i>Clin J Am Soc Nephrol</i> 2008;3:208–25. <a href="https://doi.org/10.2215/CJN.03220807" target="_blank" rel="noopener">doi:10.2215/CJN.03220807</a></li>
+    <li>Rastegar A. Use of the ΔAG/ΔHCO₃⁻ ratio in the diagnosis of mixed acid–base disorders. <i>J Am Soc Nephrol</i> 2007;18:2429–31. <a href="https://doi.org/10.1681/ASN.2006121408" target="_blank" rel="noopener">doi:10.1681/ASN.2006121408</a></li>
+    <li>Emmett M. Metabolic alkalosis: a brief pathophysiologic review. <i>Clin J Am Soc Nephrol</i> 2020;15:1848–56. <a href="https://doi.org/10.2215/CJN.16041219" target="_blank" rel="noopener">doi:10.2215/CJN.16041219</a></li>
+    <li>Mehta AN, Emmett JB, Emmett M. GOLD MARK: an anion gap mnemonic for the 21st century. <i>Lancet</i> 2008;372:892. <a href="https://doi.org/10.1016/S0140-6736(08)61398-7" target="_blank" rel="noopener">doi:10.1016/S0140-6736(08)61398-7</a></li>
+    <li>Kraut JA, Madias NE. Lactic acidosis. <i>N Engl J Med</i> 2014;371:2309–19. <a href="https://doi.org/10.1056/NEJMra1309483" target="_blank" rel="noopener">doi:10.1056/NEJMra1309483</a></li>
+    <li>Kraut JA, Madias NE. Differential diagnosis of nongap metabolic acidosis: value of a systematic approach. <i>Clin J Am Soc Nephrol</i> 2012;7:671–9. <a href="https://doi.org/10.2215/CJN.09450911" target="_blank" rel="noopener">doi:10.2215/CJN.09450911</a></li>
+    <li>Fenves AZ, et al. Increased anion gap metabolic acidosis as a result of 5-oxoproline (pyroglutamic acid): a role for acetaminophen. <i>Clin J Am Soc Nephrol</i> 2006;1:441–7. <a href="https://doi.org/10.2215/CJN.01411005" target="_blank" rel="noopener">doi:10.2215/CJN.01411005</a></li>
+    <li>KDIGO 2024 Clinical Practice Guideline for the evaluation and management of CKD. <i>Kidney Int</i> 2024;105(4S):S117–S314. <a href="https://doi.org/10.1016/j.kint.2023.10.018" target="_blank" rel="noopener">doi:10.1016/j.kint.2023.10.018</a></li>
+  </ol>
+</section>
+
+</div>
+</main>
+
+<footer><div class="wrap">Scheda di studio, gemella di "Elettroliti in schema". Valori e soglie vanno verificati sul range del proprio laboratorio e sui protocolli locali.</div></footer>
+
+<script>
+(function(){
+  var btn=document.getElementById('quizToggle');
+  function set(on){
+    document.body.classList.toggle('quiz',on);
+    btn.setAttribute('aria-pressed',on?'true':'false');
+    btn.textContent=on?'Ripasso attivo':'Modalità ripasso';
+    if(!on){document.querySelectorAll('.ans.shown').forEach(function(e){e.classList.remove('shown')})}
+    try{localStorage.setItem('quiz',on?'1':'0')}catch(e){}
+  }
+  btn.addEventListener('click',function(){set(!document.body.classList.contains('quiz'))});
+  document.addEventListener('click',function(ev){
+    if(!document.body.classList.contains('quiz'))return;
+    var a=ev.target.closest('.ans'); if(!a)return;
+    if(!a.classList.contains('shown')){ev.preventDefault();a.classList.add('shown')}
+  });
+  var saved=null; try{saved=localStorage.getItem('quiz')}catch(e){}
+  if(saved==='1')set(true);
+})();
+</script>
+
+</body>
+</html>

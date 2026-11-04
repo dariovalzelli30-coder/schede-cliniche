@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Schede">
+<meta name="theme-color" content="#F3F6F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1619" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<title>Esame neurologico in emergenza</title>
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);-webkit-text-size-adjust:100%}
+body{margin:0;font-size:14px;-webkit-tap-highlight-color:transparent}
+img{max-width:100%}
+[hidden]{display:none!important}
+.homebar{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-family:var(--f-body);font-weight:600;font-size:.9rem;color:var(--accent);padding:6px 0}
+.homebar:active{opacity:.6}
+</style>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+</script>
+</head>
+<body>
+<style>
+/* Layout: sesta scheda della serie. Sequenza operativa numerata + strumenti calcolabili (GCS, NIHSS, finestra temporale). Rosso = azione immediata */
+:root{
+  --bg:#F3F6F6; --surface:#FFFFFF; --sunk:#E8EEEF; --ink:#13232A; --muted:#55666D; --line:#CFDADC;
+  --accent:#0E6673; --accent-soft:#D9ECEE;
+  --red:#B0432B; --red-soft:#F7E4DF; --amber:#9A6410; --amber-soft:#F5EAD6;
+  --green:#2F7466; --green-soft:#DCEFEA; --blue:#2B5FAE; --blue-soft:#E1EAF7;
+  --warn:#8A2B1E; --iris:#3F6F86; --pupil:#0B1013;
+  --f-display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;
+  --f-body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --red:#EE9580; --red-soft:#3A221D; --amber:#E2AE5A; --amber-soft:#352914; --green:#71C3AF; --green-soft:#15322B; --blue:#86AEEB; --blue-soft:#1A2A42;
+  --warn:#F2A193; --iris:#6FA3BB; --pupil:#000000; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --red:#EE9580; --red-soft:#3A221D; --amber:#E2AE5A; --amber-soft:#352914; --green:#71C3AF; --green-soft:#15322B; --blue:#86AEEB; --blue-soft:#1A2A42;
+  --warn:#F2A193; --iris:#6FA3BB; --pupil:#000000; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.9rem,4.5vw,2.8rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.7rem;font-weight:700}
+h3{font-size:1.1rem;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+ul,ol{margin:0;padding-left:1.1em}
+li+li{margin-top:.15em}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:.9em}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.label{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;font-weight:600;color:var(--muted)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{padding-block:28px 20px;display:grid;gap:12px}
+.lede{max-width:70ch;color:var(--muted)}
+nav.chips{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+nav.chips .wrap{display:flex;gap:8px;align-items:center;overflow-x:auto;padding-block:10px;scrollbar-width:thin}
+nav.chips a{flex:none;text-decoration:none;color:var(--ink);font-family:var(--f-mono);font-size:.85rem;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg)}
+nav.chips a:hover{border-color:var(--accent);color:var(--accent)}
+.toggle{flex:none;margin-left:auto;font-size:.88rem;cursor:pointer;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:999px;padding:4px 12px;font-family:var(--f-body);font-weight:600}
+.toggle[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+
+main .wrap{display:grid;gap:56px;padding-block:32px 64px}
+section{display:grid;gap:20px;scroll-margin-top:64px}
+.sec-head{display:grid;gap:6px;border-top:3px solid var(--ink);padding-top:14px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:10px;min-width:0;align-content:start}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:620px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.sc{font-weight:600;font-family:var(--f-display);width:20%}
+
+/* sequenza operativa */
+.seq{list-style:none;padding:0;margin:0;display:grid;gap:10px;counter-reset:s}
+.seq>li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:0;align-items:start}
+.seq>li::before{content:attr(data-k);font-family:var(--f-mono);font-weight:600;font-size:1.05rem;width:40px;height:40px;border-radius:10px;background:var(--ink);color:var(--surface);display:grid;place-items:center}
+.seq>li.red::before{background:var(--red)}
+.seq h3{font-size:1rem;margin-bottom:4px}
+.seq .do{font-size:.9rem}
+.seq .say{font-size:.85rem;color:var(--muted);margin-top:4px}
+.seq .say b{color:var(--ink)}
+
+/* calcolatori */
+.calc{display:grid;gap:10px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row label{font-size:.88rem;font-weight:600}
+.row label small{display:block;font-weight:400;color:var(--muted);font-size:.8rem}
+select{width:100%;font:inherit;font-size:.88rem;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);min-height:40px}
+input[type="datetime-local"]{font:inherit;font-size:.95rem;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);min-height:42px;max-width:100%}
+.total{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--sunk);border-radius:10px;padding:12px 14px;position:sticky;bottom:max(8px,env(safe-area-inset-bottom,0px));border:1px solid var(--line)}
+.total .v{font-family:var(--f-mono);font-weight:600;font-size:1.6rem;font-variant-numeric:tabular-nums}
+.total .t{font-size:.88rem}
+.btn{font:inherit;font-size:.88rem;font-weight:600;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 12px;cursor:pointer;min-height:40px}
+.btn:active{transform:scale(.98)}
+.status{border-radius:8px;padding:10px 12px;font-size:.9rem;display:grid;gap:4px}
+.status.g{background:var(--green-soft);border-left:4px solid var(--green)}
+.status.a{background:var(--amber-soft);border-left:4px solid var(--amber)}
+.status.r{background:var(--red-soft);border-left:4px solid var(--red)}
+
+/* pupille */
+.pup{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.pup .card{gap:6px}
+.pup svg{width:100%;max-width:220px;height:auto;display:block}
+.pup .eyew{fill:var(--surface);stroke:var(--muted);stroke-width:1.2}
+.pup .iris{fill:var(--iris)}
+.pup .pp{fill:var(--pupil)}
+.pup .lid{fill:var(--sunk);stroke:var(--muted);stroke-width:1.2}
+.pup .lab{fill:var(--muted);font-family:var(--f-mono);font-size:7px}
+
+.alert{border-left:4px solid var(--warn);background:var(--red-soft);border-radius:0 8px 8px 0;padding:10px 14px;display:grid;gap:4px}
+.alert strong{color:var(--warn);font-family:var(--f-display)}
+.note{border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;padding:10px 14px;display:grid;gap:4px}
+.note strong{font-family:var(--f-display)}
+.geri{border:1.5px dashed var(--accent);background:var(--accent-soft);border-radius:10px;padding:14px 16px;display:grid;gap:8px}
+.geri .label{color:var(--accent)}
+.cite{font-size:.78rem;color:var(--muted)}
+.tl{display:grid;gap:0;border-left:3px solid var(--ink);margin-left:8px}
+.tl>div{position:relative;padding:0 0 14px 18px;display:grid;gap:2px}
+.tl>div::before{content:"";position:absolute;left:-8px;top:4px;width:13px;height:13px;border-radius:50%;background:var(--surface);border:3px solid var(--ink)}
+.tl>div.r::before{border-color:var(--red)}
+.tl .t{font-family:var(--f-mono);font-weight:600;font-size:.85rem}
+
+body.quiz .ans{filter:blur(6px);cursor:pointer;user-select:none;transition:filter .15s}
+body.quiz .ans.shown{filter:none;user-select:auto}
+@media (prefers-reduced-motion:reduce){body.quiz .ans{transition:none}}
+@media (max-width:560px){.row{grid-template-columns:1fr}}
+
+ol.refs{display:grid;gap:6px;padding-left:1.6em;font-size:.86rem}
+ol.refs li{margin:0}
+footer .wrap{padding-block:20px 40px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a class="homebar" href="index.html" aria-label="Torna all'elenco delle schede">&#8249; Schede</a>
+    <span class="label">Scheda operativa · emergenza neurologica nell'adulto</span>
+    <h1>Esame neurologico in emergenza</h1>
+    <p class="lede">Sequenza da seguire al letto del paziente con un evento neurologico acuto: primi 60 secondi, coscienza e pupille, ictus con NIHSS calcolabile e finestra temporale, esame mirato in 5 minuti, quadri da riconoscere e cosa fare. Non sostituisce i protocolli del proprio ospedale né il neurologo di guardia.</p>
+  </div>
+</header>
+
+<nav class="chips" aria-label="Sezioni">
+  <div class="wrap">
+    <a href="#primi">Primi 60 s</a>
+    <a href="#coscienza">GCS</a>
+    <a href="#pupille">Pupille e tronco</a>
+    <a href="#ictus">Ictus</a>
+    <a href="#nihss">NIHSS</a>
+    <a href="#mirato">Esame mirato</a>
+    <a href="#quadri">Quadri e azioni</a>
+    <a href="#fonti">Fonti</a>
+    <button class="toggle" id="quizToggle" type="button" aria-pressed="false">Modalità ripasso</button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- PRIMI 60 S -->
+<section id="primi">
+  <div class="sec-head"><span class="label">Prima la vita, poi la neurologia</span><h2>Primi 60 secondi</h2>
+    <p class="muted small">Approccio ABCDE: la valutazione neurologica è la "D", ma si fa solo dopo aver messo in sicurezza A, B e C.</p></div>
+  <ol class="seq">
+    <li data-k="A" class="red"><div><h3>Vie aeree</h3><p class="do">Pervie? Russamento, gorgoglii, vomito → aspirazione, posizione, cannula. Sospetto trauma cervicale → immobilizzazione.</p></div></li>
+    <li data-k="B" class="red"><div><h3>Respiro</h3><p class="do">FR, SpO₂, pattern respiratorio. Ossigeno solo se SpO₂ bassa. Respiro inefficace o coscienza molto ridotta → chiamare l'anestesista.</p></div></li>
+    <li data-k="C" class="red"><div><h3>Circolo</h3><p class="do">PA, FC, ritmo (ECG), accesso venoso, prelievi. Fibrillazione atriale? Ipotensione?</p></div></li>
+    <li data-k="D" class="red"><div><h3>Disabilità neurologica</h3><p class="do"><b>GCS</b> (o AVPU) · <b>pupille</b> · <b>glicemia capillare subito</b> · deficit di lato · crisi in corso.</p>
+      <p class="say ans">Ipoglicemia: correggere. Rischio di Wernicke (alcol, malnutrizione): <b>tiamina ev prima del glucosio</b> [19]. Sospetto oppioidi con depressione respiratoria: naloxone.</p></div></li>
+    <li data-k="E"><div><h3>Esposizione</h3><p class="do">Temperatura, segni di trauma cranico, rigidità nucale, rash petecchiale, segni di puntura, alito, cerotti transdermici.</p></div></li>
+    <li data-k="?"><div><h3>Tre domande all'informatore</h3>
+      <ul class="do ans">
+        <li><b>A che ora era visto bene l'ultima volta?</b> (non "quando l'hanno trovato")</li>
+        <li><b>Prende anticoagulanti o antiaggreganti?</b> Quale, ultima dose.</li>
+        <li><b>Com'era prima?</b> Autonomia, deficit precedenti, demenza.</li>
+      </ul>
+      <p class="say">Poi: esordio (brusco o graduale), cefalea, crisi, trauma, febbre, farmaci e sostanze.</p></div></li>
+  </ol>
+</section>
+
+<!-- GCS -->
+<section id="coscienza">
+  <div class="sec-head"><span class="label">D di ABCDE</span><h2>Livello di coscienza</h2>
+    <p class="muted small">Riportare sempre le tre componenti separate (es. "E2 V3 M5 = 10") e la miglior risposta motoria. Lo stimolo doloroso va dato in sede centrale (pressione sul margine sovraorbitario o sul trapezio).</p></div>
+  <div class="grid2">
+    <div class="card calc" id="gcs">
+      <span class="label">Glasgow Coma Scale (calcolatore) [1]</span>
+      <div class="row"><label for="gE">Apertura occhi</label>
+        <select id="gE"><option value="4">4 · spontanea</option><option value="3">3 · alla voce</option><option value="2">2 · al dolore</option><option value="1">1 · nessuna</option><option value="0">NT · non testabile (es. edema)</option></select></div>
+      <div class="row"><label for="gV">Risposta verbale</label>
+        <select id="gV"><option value="5">5 · orientata</option><option value="4">4 · confusa</option><option value="3">3 · parole inappropriate</option><option value="2">2 · suoni incomprensibili</option><option value="1">1 · nessuna</option><option value="0">NT · intubato o afasico</option></select></div>
+      <div class="row"><label for="gM">Risposta motoria</label>
+        <select id="gM"><option value="6">6 · esegue ordini</option><option value="5">5 · localizza il dolore</option><option value="4">4 · retrae (flessione normale)</option><option value="3">3 · flessione anomala (decorticazione)</option><option value="2">2 · estensione (decerebrazione)</option><option value="1">1 · nessuna</option></select></div>
+      <div class="total"><span class="t" id="gcsTxt">E4 V5 M6</span><span class="v" id="gcsTot">15</span></div>
+      <div class="status g" id="gcsHint">Coscienza normale.</div>
+    </div>
+    <div class="card">
+      <span class="label">Come interpretarlo</span>
+      <ul class="small ans">
+        <li><b>AVPU</b> rapido: Alert · risponde alla Voce · al dolore (Pain) · Unresponsive. "P" corrisponde circa a GCS ≤ 8.</li>
+        <li>GCS ≤ 8: vie aeree a rischio → valutazione anestesiologica per la protezione delle vie aeree.</li>
+        <li>Un calo di <b>2 o più punti</b> rispetto alla valutazione precedente è un peggioramento significativo: rivalutare e ripetere l'imaging.</li>
+        <li>Asimmetria motoria (un lato localizza, l'altro no) → lesione strutturale.</li>
+        <li>Il GCS non vale per afasia, sedazione, intubazione: documentarlo come "non testabile".</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- PUPILLE -->
+<section id="pupille">
+  <div class="sec-head"><span class="label">Coma: strutturale o tossico-metabolico?</span><h2>Pupille e tronco encefalico</h2>
+    <p class="muted small">Pupille reattive e simmetriche con riflessi del tronco conservati orientano verso una causa tossico-metabolica; asimmetrie e segni focali verso una causa strutturale [2].</p></div>
+  <div class="pup" id="pupGrid"></div>
+  <div class="grid2">
+    <div class="card"><span class="label">Sguardo [2]</span>
+      <ul class="small ans">
+        <li><b>Deviazione verso la lesione</b> (il paziente "guarda la lesione", opposto all'emiparesi): ictus emisferico.</li>
+        <li><b>Deviazione opposta alla lesione</b> (verso l'emiparesi o con clonie): crisi epilettica in corso dal lato opposto allo sguardo, o lesione pontina.</li>
+        <li>Deviazione verso il basso: lesione talamica o mesencefalica, idrocefalo.</li>
+        <li>Nistagmo, skew deviation: lesione del tronco o del cervelletto.</li>
+      </ul></div>
+    <div class="card"><span class="label">Riflessi del tronco nel paziente in coma [2]</span>
+      <ul class="small ans">
+        <li><b>Corneale</b> (V afferente, VII efferente): assente → danno pontino o coma profondo.</li>
+        <li><b>Oculocefalico</b> ("occhi di bambola"): mai se possibile lesione cervicale. Occhi che restano fissi rispetto alla testa = tronco danneggiato (o coma farmacologico profondo).</li>
+        <li><b>Tosse e deglutizione</b> all'aspirazione: bulbo.</li>
+        <li><b>Respiro</b>: Cheyne-Stokes (emisferi bilaterali, scompenso), iperventilazione (acidosi o mesencefalo), atassico (bulbo, pre-terminale).</li>
+      </ul></div>
+  </div>
+  <div class="card"><span class="label">Coma: cosa fare subito [2]</span>
+    <div class="grid2" style="gap:12px">
+      <ul class="small ans">
+        <li>Glicemia; tiamina se a rischio; naloxone se sospetto oppioidi.</li>
+        <li>EGA (CO₂, lattati, osmolalità), elettroliti, Na, Ca, funzione renale ed epatica, ammoniemia, tossicologico, CK.</li>
+        <li>Temperatura: febbre → pensare a meningite o encefalite (vedi Quadri).</li>
+      </ul>
+      <ul class="small ans">
+        <li><b>TC encefalo</b> senza mezzo di contrasto; angio-TC se sospetta occlusione basilare (coma improvviso, segni del tronco).</li>
+        <li><b>EEG</b> se coma senza causa evidente: stato di male non convulsivo.</li>
+        <li>Rachicentesi se febbre o sospetto infettivo, dopo TC quando indicata.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ICTUS -->
+<section id="ictus">
+  <div class="sec-head"><span class="label">Il tempo è cervello</span><h2>Sospetto ictus</h2>
+    <p class="muted small">Dal sospetto all'imaging il più rapidamente possibile: <b>non aspettare esami di laboratorio</b> per l'imaging, tranne la glicemia (e l'INR se in terapia con anticoagulanti orali dicumarolici) [5][6].</p></div>
+  <div class="grid2">
+    <div class="card"><span class="label">Riconoscere: BE-FAST [3]</span>
+      <ul class="small ans">
+        <li><b>B</b>alance: perdita improvvisa di equilibrio</li>
+        <li><b>E</b>yes: perdita improvvisa della vista, diplopia</li>
+        <li><b>F</b>ace: asimmetria del volto</li>
+        <li><b>A</b>rm: debolezza di un braccio</li>
+        <li><b>S</b>peech: disturbo del linguaggio</li>
+        <li><b>T</b>ime: annotare l'ora, chiamare il 112 / il team ictus</li>
+      </ul>
+      <span class="label">Mimic da escludere</span>
+      <p class="small ans">Ipoglicemia, crisi epilettica con paralisi post-critica (Todd), emicrania con aura, encefalopatia settica o metabolica che riaccende vecchi deficit, sincope, disturbo funzionale. In dubbio, procedere come ictus.</p></div>
+    <div class="card"><span class="label">Finestra temporale (orientativa)</span>
+      <div class="row"><label for="lkw">Ultima volta visto bene<small>Se si è svegliato con il deficit: l'ora in cui è andato a dormire</small></label><input type="datetime-local" id="lkw"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="lkwNow">Adesso</button><button class="btn" type="button" id="lkwClear">Cancella</button></div>
+      <div class="status a" id="lkwOut">Inserisci l'ora: calcolo il tempo trascorso.</div>
+      <p class="cite">Indicazione orientativa da linee guida AHA/ASA 2026 ed ESO [5][6]; la decisione sul trattamento spetta al team ictus con l'imaging.</p></div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Azione</th><th>Cosa sapere</th></tr></thead>
+      <tbody class="ans">
+        <tr><td class="sc">Imaging</td><td>TC encefalo + angio-TC dei vasi intra/extracranici (occlusione di grosso vaso); perfusione o RM per finestre estese o esordio sconosciuto [5]</td></tr>
+        <tr><td class="sc">Trombolisi ev</td><td>Entro <b>4,5 ore</b>, il prima possibile. Alteplase 0,9 mg/kg (max 90 mg, 10% in bolo) o tenecteplase 0,25 mg/kg (max 25 mg) in bolo singolo [5][6][7]. Oltre 4,5 h o esordio sconosciuto: possibile in pazienti selezionati con imaging di penombra [5]</td></tr>
+        <tr><td class="sc">Pressione</td><td>Per la trombolisi: &lt; 185/110 prima e &lt; 180/105 nelle 24 h successive [8]. Dopo riperfusione, non abbassare intensivamente sotto 140 di sistolica [5]</td></tr>
+        <tr><td class="sc">Trombectomia</td><td>Occlusione di grosso vaso anteriore entro 6 h; 6–24 h in pazienti selezionati con imaging; occlusione basilare entro 24 h con NIHSS ≥ 10 in pazienti selezionati [5]</td></tr>
+        <tr><td class="sc">Emorragia</td><td>Sistolica verso 140 (intervallo 130–150) [9]. Invertire subito gli anticoagulanti: dicumarolici → complesso protrombinico + vitamina K; dabigatran → idarucizumab; anti-Xa → andexanet o complesso protrombinico [9]</td></tr>
+        <tr><td class="sc">Circolo posteriore</td><td>Vertigine, diplopia, atassia, disartria, coma improvviso. La NIHSS sottostima i deficit. Nella sindrome vestibolare acuta continua con nistagmo, HINTS "centrale" (head impulse normale, nistagmo che cambia direzione, skew) orienta all'ictus; dipende dall'esperienza dell'operatore [10]</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- NIHSS -->
+<section id="nihss">
+  <div class="sec-head"><span class="label">Da fare in ordine, senza "aiutare" il paziente</span><h2>NIHSS (calcolatore)</h2>
+    <p class="muted small">Punteggio 0–42. Registra la prima risposta, non la migliore. Gli item non testabili seguono le regole della scala (es. amputazione = non testabile, 0) [4].</p></div>
+  <div class="card calc" id="nihssCard"></div>
+</section>
+
+<!-- ESAME MIRATO -->
+<section id="mirato">
+  <div class="sec-head"><span class="label">Paziente sveglio e collaborante</span><h2>Esame mirato in 5 minuti</h2>
+    <p class="muted small">Sempre nello stesso ordine, dall'alto in basso; confrontare i due lati.</p></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Passo</th><th>Come</th><th>Cosa cercare</th></tr></thead>
+      <tbody class="ans">
+        <tr><td class="sc">1 · Stato mentale e linguaggio</td><td>Orientamento; nominare 2 oggetti, ripetere una frase, eseguire un ordine</td><td><b>Afasia</b> (lesione corticale dominante) ≠ <b>disartria</b> (articolazione). Neglect: ignora un lato</td></tr>
+        <tr><td class="sc">2 · Nervi cranici</td><td>Campo visivo per quadranti, movimenti oculari, mimica (fronte e bocca), deglutizione</td><td>Paralisi facciale <b>centrale</b>: fronte risparmiata; <b>periferica</b> (Bell): tutta l'emifaccia. Diplopia, ptosi, anisocoria</td></tr>
+        <tr><td class="sc">3 · Motilità</td><td><b>Prova di Mingazzini</b> braccia (10 s) e gambe (5 s); forza segmentaria 0–5 (scala MRC)</td><td>Slivellamento con pronazione = deficit piramidale lieve. Distribuzione: emilato, paraparesi, tetraparesi, distale/prossimale</td></tr>
+        <tr><td class="sc">4 · Riflessi</td><td>Bicipitale, rotuleo, achilleo; cutaneo plantare</td><td><b>Babinski</b> e iperreflessia = I motoneurone. Areflessia con debolezza = II motoneurone, nervo, Guillain-Barré</td></tr>
+        <tr><td class="sc">5 · Sensibilità</td><td>Puntura e tatto ai 4 arti, tronco dall'alto in basso</td><td><b>Livello sensitivo</b> sul tronco = midollo. Anestesia "a sella" = cauda equina</td></tr>
+        <tr><td class="sc">6 · Coordinazione</td><td>Indice-naso, tallone-ginocchio, movimenti alternati</td><td>Dismetria non spiegata da debolezza → cervelletto</td></tr>
+        <tr><td class="sc">7 · Marcia</td><td>Solo se sicuro: in piedi, cammino, Romberg</td><td>Atassia del tronco (cervelletto mediano) può essere l'unico segno di ictus cerebellare</td></tr>
+        <tr><td class="sc">8 · Segni meningei</td><td>Rigidità nucale, Kernig, Brudzinski</td><td>Poco sensibili: la loro assenza <b>non esclude</b> la meningite [13]</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid2">
+    <div class="card"><span class="label">I motoneurone vs II motoneurone</span>
+      <div class="tbl-wrap" style="border:0"><table style="min-width:380px">
+        <thead><tr><th></th><th>I (centrale)</th><th>II (periferico)</th></tr></thead>
+        <tbody class="ans">
+          <tr><td>Tono</td><td>Aumentato (in acuto può essere ridotto)</td><td>Ridotto</td></tr>
+          <tr><td>Riflessi</td><td>Aumentati, Babinski</td><td>Ridotti o assenti</td></tr>
+          <tr><td>Trofismo</td><td>Conservato</td><td>Atrofia, fascicolazioni</td></tr>
+          <tr><td>Distribuzione</td><td>Emilato, piramidale</td><td>Radice, nervo, distale</td></tr>
+        </tbody></table></div></div>
+    <div class="card"><span class="label">Localizzare in una frase</span>
+      <ul class="small ans">
+        <li>Faccia + braccio + gamba stesso lato + afasia o neglect → <b>emisfero</b> controlaterale.</li>
+        <li>Nervo cranico da un lato + arti dall'altro ("crociata") → <b>tronco</b>.</li>
+        <li>Livello sensitivo + paraparesi + sfinteri → <b>midollo</b>.</li>
+        <li>Debolezza ascendente simmetrica + areflessia → <b>nervi periferici</b> (Guillain-Barré).</li>
+        <li>Ptosi, diplopia, debolezza che peggiora con l'uso, riflessi normali → <b>giunzione neuromuscolare</b> (miastenia).</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- QUADRI -->
+<section id="quadri">
+  <div class="sec-head"><span class="label">Se trovi… fai</span><h2>Quadri e azioni</h2></div>
+
+  <div class="card"><span class="label">Stato di male epilettico: cronologia [11][12]</span>
+    <div class="tl ans">
+      <div><span class="t">0–5 min</span><span class="small">ABC, ossigeno, glicemia (tiamina prima del glucosio se a rischio), accesso venoso, monitor. Annotare l'ora di inizio.</span></div>
+      <div class="r"><span class="t">5 min · 1ª linea</span><span class="small">Benzodiazepina: <b>midazolam 10 mg im</b> (&gt; 40 kg) oppure <b>lorazepam 0,1 mg/kg ev</b> (max 4 mg) oppure <b>diazepam 0,15–0,2 mg/kg ev</b> (max 10 mg); ripetibile una volta [11].</span></div>
+      <div class="r"><span class="t">20 min · 2ª linea</span><span class="small">Una tra: <b>levetiracetam 60 mg/kg ev</b> (max 4500 mg), <b>fosfenitoina 20 mg PE/kg</b> (max 1500), <b>valproato 40 mg/kg ev</b> (max 3000 mg): efficacia simile nel trial ESETT [12].</span></div>
+      <div class="r"><span class="t">40 min · refrattario</span><span class="small">Anestesia generale in terapia intensiva con monitoraggio EEG [11].</span></div>
+    </div>
+    <p class="cite">Lo stato di male non convulsivo si diagnostica solo con l'EEG: pensarci nel paziente che non si riprende dopo una crisi.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><span class="label">Sospetta meningite batterica [13]</span>
+      <ul class="small ans">
+        <li><b>Emocolture e antibiotico subito</b>: non ritardare per TC o rachicentesi.</li>
+        <li><b>TC prima della rachicentesi</b> solo se: deficit focali (esclusi nervi cranici), crisi di nuova insorgenza, GCS &lt; 10, grave immunodepressione.</li>
+        <li><b>Desametasone</b> 10 mg ogni 6 h per 4 giorni, iniziato prima o con la prima dose di antibiotico.</li>
+        <li><b>Ceftriaxone</b> 2 g ogni 12 h + <b>ampicillina/amoxicillina</b> 2 g ogni 4 h se &gt; 50 anni o immunodepresso (Listeria) ± vancomicina o rifampicina dove c'è pneumococco resistente.</li>
+        <li>Alterazione dello stato mentale, crisi o deficit focali con febbre → aggiungere <b>aciclovir</b> 10 mg/kg ogni 8 h (encefalite erpetica).</li>
+      </ul></div>
+    <div class="card"><span class="label">Cefalea a esordio esplosivo (sospetta ESA) [14][15]</span>
+      <ul class="small ans">
+        <li><b>Regola di Ottawa</b> (paziente vigile, cefalea non traumatica con picco entro 1 ora): indagare se età ≥ 40, dolore o rigidità del collo, perdita di coscienza testimoniata, esordio durante sforzo, esordio "a rombo di tuono" istantaneo, limitata flessione del collo [14].</li>
+        <li><b>TC encefalo entro 6 ore</b> dall'esordio, letta da radiologo esperto: sensibilità vicina al 100% [15].</li>
+        <li>TC negativa oltre 6 ore → rachicentesi (xantocromia) o angio-TC secondo protocollo locale.</li>
+      </ul></div>
+  </div>
+
+  <div class="grid3">
+    <div class="card"><span class="label">Compressione midollare / cauda equina</span>
+      <ul class="small ans">
+        <li>Dolore rachideo + deficit agli arti, livello sensitivo, ritenzione urinaria, anestesia a sella.</li>
+        <li><b>RM del rachide urgente</b>; nella compressione metastatica desametasone 16 mg e valutazione oncologica e neurochirurgica [16].</li>
+      </ul></div>
+    <div class="card"><span class="label">Debolezza ascendente (Guillain-Barré)</span>
+      <ul class="small ans">
+        <li>Monitorare la funzione respiratoria: regola <b>20/30/40</b>, rischio di intubazione se capacità vitale &lt; 20 mL/kg, pressione inspiratoria massima meno negativa di −30 cmH₂O, espiratoria &lt; 40 cmH₂O [17].</li>
+        <li>La SpO₂ cala tardi: non basta per monitorare.</li>
+      </ul></div>
+    <div class="card"><span class="label">Segni di erniazione</span>
+      <ul class="small ans">
+        <li>Calo del GCS, midriasi fissa monolaterale, postura in estensione, triade di Cushing (ipertensione, bradicardia, respiro irregolare).</li>
+        <li>Testa a 30°, osmoterapia, neurochirurgo subito; iperventilazione solo breve, come ponte.</li>
+      </ul></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><span class="label">Trauma cranico in terapia anticoagulante</span>
+      <p class="small ans">Nell'anziano in terapia anticoagulante la soglia per la TC encefalo è bassa anche dopo traumi minori: seguire il protocollo locale [18]. In caso di emorragia invertire subito l'anticoagulante come per l'emorragia spontanea [9].</p></div>
+    <div class="card"><span class="label">Crisi o sincope?</span>
+      <ul class="small ans">
+        <li>A favore di <b>crisi</b>: morso laterale della lingua, confusione post-critica prolungata, aura, testa girata.</li>
+        <li>A favore di <b>sincope</b>: prodromi (calore, sudorazione, vista che si oscura), recupero rapido, poche scosse brevi.</li>
+      </ul></div>
+  </div>
+
+  <div class="geri">
+    <span class="label">Rilevanza geriatrica</span>
+    <ul class="small">
+      <li>Nell'anziano un deficit "vecchio" che peggiora con febbre o iponatriemia può simulare un nuovo ictus: confrontare con lo stato precedente riferito dai familiari.</li>
+      <li>Ematoma subdurale cronico: decorso subacuto, cadute anche banali, anticoagulanti; spesso senza trauma ricordato.</li>
+      <li>Annotare sempre la terapia antitrombotica: cambia trombolisi, gestione dell'emorragia e trauma.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- FONTI -->
+<section id="fonti">
+  <div class="sec-head"><span class="label">Bibliografia</span><h2>Fonti</h2></div>
+  <ol class="refs">
+    <li>Teasdale G, Jennett B. Assessment of coma and impaired consciousness: a practical scale. <i>Lancet</i> 1974;2:81–4. <a href="https://doi.org/10.1016/S0140-6736(74)91639-0" target="_blank" rel="noopener">doi:10.1016/S0140-6736(74)91639-0</a></li>
+    <li>Edlow JA, Rabinstein A, Traub SJ, Wijdicks EFM. Diagnosis of reversible causes of coma. <i>Lancet</i> 2014;384:2064–76. <a href="https://doi.org/10.1016/S0140-6736(13)62184-4" target="_blank" rel="noopener">doi:10.1016/S0140-6736(13)62184-4</a></li>
+    <li>Aroor S, Singh R, Goldstein LB. BE-FAST (Balance, Eyes, Face, Arm, Speech, Time): reducing the proportion of strokes missed using the FAST mnemonic. <i>Stroke</i> 2017;48:479–81. <a href="https://doi.org/10.1161/STROKEAHA.116.015169" target="_blank" rel="noopener">doi:10.1161/STROKEAHA.116.015169</a></li>
+    <li>Brott T, et al. Measurements of acute cerebral infarction: a clinical examination scale. <i>Stroke</i> 1989;20:864–70. <a href="https://doi.org/10.1161/01.STR.20.7.864" target="_blank" rel="noopener">doi:10.1161/01.STR.20.7.864</a></li>
+    <li>AHA/ASA. 2026 Guideline for the early management of patients with acute ischemic stroke. <i>Stroke</i> 2026 (online 26 gennaio 2026). <a href="https://doi.org/10.1161/STR.0000000000000513" target="_blank" rel="noopener">doi:10.1161/STR.0000000000000513</a></li>
+    <li>Berge E, et al. European Stroke Organisation (ESO) guidelines on intravenous thrombolysis for acute ischaemic stroke. <i>Eur Stroke J</i> 2021;6:I–LXII. <a href="https://doi.org/10.1177/2396987321989865" target="_blank" rel="noopener">doi:10.1177/2396987321989865</a></li>
+    <li>Alamowitch S, et al. European Stroke Organisation (ESO) expedited recommendation on tenecteplase for acute ischaemic stroke. <i>Eur Stroke J</i> 2023;8:8–54. <a href="https://doi.org/10.1177/23969873221150022" target="_blank" rel="noopener">doi:10.1177/23969873221150022</a></li>
+    <li>Powers WJ, et al. Guidelines for the early management of patients with acute ischemic stroke: 2019 update. <i>Stroke</i> 2019;50:e344–e418. <a href="https://doi.org/10.1161/STR.0000000000000211" target="_blank" rel="noopener">doi:10.1161/STR.0000000000000211</a></li>
+    <li>Greenberg SM, et al. 2022 Guideline for the management of patients with spontaneous intracerebral hemorrhage. <i>Stroke</i> 2022;53:e282–e361. <a href="https://doi.org/10.1161/STR.0000000000000407" target="_blank" rel="noopener">doi:10.1161/STR.0000000000000407</a></li>
+    <li>Kattah JC, et al. HINTS to diagnose stroke in the acute vestibular syndrome. <i>Stroke</i> 2009;40:3504–10. <a href="https://doi.org/10.1161/STROKEAHA.109.551234" target="_blank" rel="noopener">doi:10.1161/STROKEAHA.109.551234</a></li>
+    <li>Glauser T, et al. Evidence-based guideline: treatment of convulsive status epilepticus in children and adults (American Epilepsy Society). <i>Epilepsy Curr</i> 2016;16:48–61. <a href="https://doi.org/10.5698/1535-7597-16.1.48" target="_blank" rel="noopener">doi:10.5698/1535-7597-16.1.48</a></li>
+    <li>Kapur J, et al. Randomized trial of three anticonvulsant medications for status epilepticus (ESETT). <i>N Engl J Med</i> 2019;381:2103–13. <a href="https://doi.org/10.1056/NEJMoa1905795" target="_blank" rel="noopener">doi:10.1056/NEJMoa1905795</a></li>
+    <li>van de Beek D, et al. ESCMID guideline: diagnosis and treatment of acute bacterial meningitis. <i>Clin Microbiol Infect</i> 2016;22(Suppl 3):S37–S62. <a href="https://doi.org/10.1016/j.cmi.2016.01.007" target="_blank" rel="noopener">doi:10.1016/j.cmi.2016.01.007</a></li>
+    <li>Perry JJ, et al. Clinical decision rules to rule out subarachnoid hemorrhage for acute headache (Ottawa SAH rule). <i>JAMA</i> 2013;310:1248–55. <a href="https://doi.org/10.1001/jama.2013.278018" target="_blank" rel="noopener">doi:10.1001/jama.2013.278018</a></li>
+    <li>Perry JJ, et al. Sensitivity of computed tomography performed within six hours of onset of headache for diagnosis of subarachnoid haemorrhage. <i>BMJ</i> 2011;343:d4277. <a href="https://doi.org/10.1136/bmj.d4277" target="_blank" rel="noopener">doi:10.1136/bmj.d4277</a></li>
+    <li>NICE. Spinal metastases and metastatic spinal cord compression (NG234). 2023. <a href="https://www.nice.org.uk/guidance/ng234" target="_blank" rel="noopener">NICE</a></li>
+    <li>Lawn ND, et al. Anticipating mechanical ventilation in Guillain-Barré syndrome. <i>Arch Neurol</i> 2001;58:893–8. <a href="https://doi.org/10.1001/archneur.58.6.893" target="_blank" rel="noopener">doi:10.1001/archneur.58.6.893</a></li>
+    <li>NICE. Head injury: assessment and early management (NG232). 2023. <a href="https://www.nice.org.uk/guidance/ng232" target="_blank" rel="noopener">NICE</a></li>
+    <li>Galvin R, et al. EFNS guidelines for diagnosis, therapy and prevention of Wernicke encephalopathy. <i>Eur J Neurol</i> 2010;17:1408–18. <a href="https://doi.org/10.1111/j.1468-1331.2010.03153.x" target="_blank" rel="noopener">doi:10.1111/j.1468-1331.2010.03153.x</a></li>
+  </ol>
+</section>
+
+</div>
+</main>
+
+<footer><div class="wrap">Scheda di studio e di supporto operativo, sesta della serie. Le dosi sono per adulti; verificare sempre protocolli locali, controindicazioni e indicazioni del neurologo e del team ictus.</div></footer>
+
+<script>
+(function(){
+function $(id){return document.getElementById(id);}
+/* ---------- GCS ---------- */
+function gcs(){
+  var e=+$('gE').value, v=+$('gV').value, m=+$('gM').value;
+  var nt=(e===0||v===0);
+  var txt='E'+(e||'NT')+' V'+(v||'NT')+' M'+m;
+  $('gcsTxt').textContent=txt;
+  var tot=e+v+m;
+  $('gcsTot').textContent=nt?('≥ '+tot):tot;
+  var h=$('gcsHint');
+  if(!nt&&tot<=8){h.className='status r';h.textContent='GCS ≤ 8: vie aeree a rischio, chiamare l\'anestesista. Pupille, glicemia, TC.';}
+  else if(tot<=12){h.className='status a';h.textContent='Coscienza ridotta: cercare la causa (glicemia, farmaci, TC), rivalutare spesso.';}
+  else if(tot<15){h.className='status a';h.textContent='Lieve riduzione: rivalutare spesso; un calo di 2 punti è significativo.';}
+  else{h.className='status g';h.textContent='Coscienza normale.';}
+  if(nt){h.className='status a';h.textContent='Componente non testabile: riportare le singole voci, il totale non è confrontabile.';}
+}
+['gE','gV','gM'].forEach(function(id){$(id).addEventListener('change',gcs);});
+gcs();
+
+/* ---------- pupille ---------- */
+var P=[
+ ['Normali',3.5,3.5,false,false,'Simmetriche e reattive. Coma con pupille normali → più probabile causa tossico-metabolica [2].'],
+ ['Midriasi fissa monolaterale',7,3.5,false,false,'Compressione del III nervo: erniazione dell\'uncus o aneurisma della comunicante posteriore. Emergenza neurochirurgica [2].'],
+ ['Miosi puntiforme bilaterale',1,1,false,false,'Oppioidi (naloxone), lesione pontina, organofosfati [2].'],
+ ['Midriasi fissa bilaterale',7.5,7.5,false,false,'Anossia grave, erniazione avanzata; anche anticolinergici, simpaticomimetici, atropina, colliri [2].'],
+ ['Intermedie fisse',4.5,4.5,false,false,'Lesione mesencefalica [2].'],
+ ['Sindrome di Horner (a sinistra)',3.5,2,true,false,'Miosi e ptosi lievi omolaterali: con dolore cervicale o al volto pensare a <b>dissezione carotidea</b> [2].']
+];
+function eye(cx,r,ptosis){
+  var s='<ellipse class="eyew" cx="'+cx+'" cy="40" rx="34" ry="20"/>'+
+        '<circle class="iris" cx="'+cx+'" cy="40" r="15"/>'+
+        '<circle class="pp" cx="'+cx+'" cy="40" r="'+(r*1.4)+'"/>';
+  if(ptosis)s+='<path class="lid" d="M'+(cx-34)+' 40 Q'+cx+' 6 '+(cx+34)+' 40 Q'+cx+' 22 '+(cx-34)+' 40Z"/>';
+  return s;
+}
+var g=$('pupGrid');
+P.forEach(function(p){
+  var d=document.createElement('div'); d.className='card';
+  d.innerHTML='<svg viewBox="0 0 180 80" role="img" aria-label="'+p[0]+'">'+eye(48,p[1],false)+eye(132,p[2],p[3])+
+    '<text class="lab" x="48" y="76" text-anchor="middle">destro</text><text class="lab" x="132" y="76" text-anchor="middle">sinistro</text></svg>'+
+    '<h4>'+p[0]+'</h4><p class="small ans">'+p[5]+'</p>';
+  g.appendChild(d);
+});
+
+/* ---------- finestra temporale ---------- */
+var out=$('lkwOut');
+function pad(n){return (n<10?'0':'')+n;}
+function lk(){
+  var v=$('lkw').value;
+  if(!v){out.className='status a';out.innerHTML='Inserisci l\'ora: calcolo il tempo trascorso.';return;}
+  var t=new Date(v), now=new Date(), min=Math.floor((now-t)/60000);
+  if(isNaN(min)){return;}
+  if(min<0){out.className='status a';out.textContent='L\'ora inserita è nel futuro.';return;}
+  var hh=Math.floor(min/60), mm=min%60, txt='<b>Trascorsi '+hh+' h '+pad(mm)+' min</b>';
+  var cls='g', msg;
+  if(min<=270){msg='Entro 4,5 h: possibile trombolisi ev (il prima possibile). Se occlusione di grosso vaso, anche trombectomia.';}
+  else if(min<=360){cls='a';msg='Oltre 4,5 h: trombolisi standard non più indicata; trombectomia possibile se occlusione di grosso vaso (entro 6 h). Trombolisi in finestra estesa solo con imaging di penombra.';}
+  else if(min<=1440){cls='a';msg='6–24 h: trombectomia in pazienti selezionati con imaging avanzato; occlusione basilare entro 24 h. Contattare subito il centro ictus.';}
+  else{cls='r';msg='Oltre 24 h: fuori dalle finestre di riperfusione standard. Gestione dell\'ictus in stroke unit.';}
+  out.className='status '+cls; out.innerHTML=txt+'<span>'+msg+'</span>';
+  try{localStorage.setItem('lkw',v);}catch(e){}
+}
+$('lkw').addEventListener('input',lk);
+$('lkwNow').addEventListener('click',function(){var d=new Date();d.setSeconds(0,0);var s=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());$('lkw').value=s;lk();});
+$('lkwClear').addEventListener('click',function(){$('lkw').value='';try{localStorage.removeItem('lkw');}catch(e){} lk();});
+try{var sv=localStorage.getItem('lkw'); if(sv){$('lkw').value=sv;}}catch(e){}
+lk(); setInterval(lk,60000);
+
+/* ---------- NIHSS ---------- */
+var N=[
+ ['1a. Livello di coscienza','',['0 · vigile','1 · non vigile, risvegliabile con stimoli lievi','2 · risponde solo a stimoli ripetuti o dolorosi','3 · risposte riflesse o nessuna']],
+ ['1b. Domande','Mese ed età',['0 · entrambe corrette','1 · una corretta (o disartria grave, intubato)','2 · nessuna corretta']],
+ ['1c. Ordini','Apri e chiudi gli occhi; stringi e apri la mano',['0 · esegue entrambi','1 · esegue uno','2 · nessuno']],
+ ['2. Sguardo','Solo movimenti orizzontali',['0 · normale','1 · paralisi parziale','2 · deviazione forzata']],
+ ['3. Campo visivo','Per quadranti, conta delle dita',['0 · normale','1 · emianopsia parziale','2 · emianopsia completa','3 · emianopsia bilaterale (cecità corticale)']],
+ ['4. Paralisi facciale','Mostra i denti, alza le sopracciglia',['0 · normale','1 · lieve (solco naso-labiale appiattito)','2 · parziale (metà inferiore del volto)','3 · completa (superiore e inferiore)']],
+ ['5a. Motilità braccio sinistro','Braccio a 90° (seduto) o 45° (supino) per 10 s',['0 · nessuno slivellamento','1 · slivella prima di 10 s','2 · sforzo contro gravità, cade','3 · nessuno sforzo contro gravità','4 · nessun movimento']],
+ ['5b. Motilità braccio destro','',['0 · nessuno slivellamento','1 · slivella prima di 10 s','2 · sforzo contro gravità, cade','3 · nessuno sforzo contro gravità','4 · nessun movimento']],
+ ['6a. Motilità gamba sinistra','Gamba a 30° (supino) per 5 s',['0 · nessuno slivellamento','1 · slivella prima di 5 s','2 · sforzo contro gravità, cade','3 · nessuno sforzo contro gravità','4 · nessun movimento']],
+ ['6b. Motilità gamba destra','',['0 · nessuno slivellamento','1 · slivella prima di 5 s','2 · sforzo contro gravità, cade','3 · nessuno sforzo contro gravità','4 · nessun movimento']],
+ ['7. Atassia degli arti','Indice-naso, tallone-ginocchio; solo se sproporzionata alla debolezza',['0 · assente','1 · in un arto','2 · in due arti']],
+ ['8. Sensibilità','Puntura su volto, braccia, gambe',['0 · normale','1 · ipoestesia lieve-moderata','2 · anestesia grave o totale']],
+ ['9. Linguaggio','Descrivi la figura, nomina oggetti, leggi frasi',['0 · normale','1 · afasia lieve-moderata','2 · afasia grave','3 · muto, afasia globale']],
+ ['10. Disartria','Leggi o ripeti parole',['0 · normale','1 · lieve-moderata','2 · grave, incomprensibile']],
+ ['11. Estinzione e inattenzione','Stimoli bilaterali simultanei, visivi e tattili',['0 · normale','1 · in una modalità','2 · grave o in più modalità']]
+];
+var nc=$('nihssCard'), html='<span class="label">National Institutes of Health Stroke Scale [4]</span>';
+N.forEach(function(it,i){
+  html+='<div class="row"><label for="n'+i+'">'+it[0]+(it[1]?'<small>'+it[1]+'</small>':'')+'</label><select id="n'+i+'" data-n="1">'+
+    it[2].map(function(o,j){return '<option value="'+j+'">'+o+'</option>';}).join('')+'</select></div>';
+});
+html+='<div class="total"><span class="t" id="nTxt">Nessun deficit</span><span class="v" id="nTot">0</span></div>'+
+  '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="nReset">Azzera</button><button class="btn" type="button" id="nCopy">Copia punteggi</button></div>'+
+  '<p class="cite">Le fasce di gravità sono convenzionali e indicative: 1–4 lieve, 5–15 moderato, 16–20 moderato-grave, &gt; 20 grave. Un punteggio basso non esclude un ictus invalidante (es. afasia isolata, circolo posteriore).</p>';
+nc.innerHTML=html;
+function nihss(){
+  var t=0; document.querySelectorAll('select[data-n]').forEach(function(s){t+=+s.value;});
+  $('nTot').textContent=t;
+  $('nTxt').textContent=t===0?'Nessun deficit':t<=4?'Lieve':t<=15?'Moderato':t<=20?'Moderato-grave':'Grave';
+}
+nc.addEventListener('change',nihss);
+$('nReset').addEventListener('click',function(){document.querySelectorAll('select[data-n]').forEach(function(s){s.value='0';});nihss();});
+$('nCopy').addEventListener('click',function(){
+  var lines=['NIHSS totale: '+$('nTot').textContent];
+  N.forEach(function(it,i){lines.push(it[0]+': '+$('n'+i).value);});
+  var txt=lines.join('\n'), b=$('nCopy');
+  function ok(){b.textContent='Copiato';setTimeout(function(){b.textContent='Copia punteggi';},1500);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok).catch(function(){b.textContent='Copia non disponibile';});}
+  else{b.textContent='Copia non disponibile';}
+});
+nihss();
+
+/* ---------- ripasso ---------- */
+var btn=$('quizToggle');
+function set(on){
+  document.body.classList.toggle('quiz',on);
+  btn.setAttribute('aria-pressed',on?'true':'false');
+  btn.textContent=on?'Ripasso attivo':'Modalità ripasso';
+  if(!on){document.querySelectorAll('.ans.shown').forEach(function(e){e.classList.remove('shown');});}
+  try{localStorage.setItem('quiz',on?'1':'0');}catch(e){}
+}
+btn.addEventListener('click',function(){set(!document.body.classList.contains('quiz'));});
+document.addEventListener('click',function(ev){
+  if(!document.body.classList.contains('quiz'))return;
+  var a=ev.target.closest('.ans'); if(!a)return;
+  if(!a.classList.contains('shown')){ev.preventDefault();a.classList.add('shown');}
+});
+var saved=null; try{saved=localStorage.getItem('quiz');}catch(e){}
+if(saved==='1')set(true);
+})();
+</script>
+
+</body>
+</html>
