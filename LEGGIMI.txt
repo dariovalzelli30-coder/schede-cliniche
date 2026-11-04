@@ -1,6 +1,6 @@
 SCHEDE CLINICHE - web app per iPhone
 
-Contenuto: index.html (schermata iniziale), 4 schede, manifest, service worker (offline), icone.
+Contenuto: index.html (schermata iniziale), le schede, manifest, service worker (offline), icone.
 
 PUBBLICAZIONE (una volta sola, gratis)
 Opzione A - Netlify Drop

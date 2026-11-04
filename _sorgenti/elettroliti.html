@@ -1,0 +1,569 @@
+<title>Elettroliti in schema</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: scheda da reparto — colonna centrale, flowchart a griglia che si impila su telefono, codice colore = volemia / basso-alto */
+:root{
+  --bg:#F3F6F6; --surface:#FFFFFF; --sunk:#E8EEEF; --ink:#13232A; --muted:#55666D; --line:#CFDADC;
+  --accent:#0E6673; --accent-soft:#D9ECEE;
+  --low:#2B5FAE; --low-soft:#E1EAF7;      /* valore basso */
+  --high:#B0432B; --high-soft:#F7E4DF;    /* valore alto */
+  --vol-ipo:#9A6410; --vol-ipo-soft:#F5EAD6;
+  --vol-eu:#2F7466; --vol-eu-soft:#DCEFEA;
+  --vol-iper:#4B4FA6; --vol-iper-soft:#E5E5F6;
+  --warn:#8A2B1E;
+  --f-display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --low:#86AEEB; --low-soft:#1A2A42; --high:#EE9580; --high-soft:#3A221D;
+  --vol-ipo:#E2AE5A; --vol-ipo-soft:#352914; --vol-eu:#71C3AF; --vol-eu-soft:#15322B;
+  --vol-iper:#A6A9F0; --vol-iper-soft:#24254A; --warn:#F2A193; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --low:#86AEEB; --low-soft:#1A2A42; --high:#EE9580; --high-soft:#3A221D;
+  --vol-ipo:#E2AE5A; --vol-ipo-soft:#352914; --vol-eu:#71C3AF; --vol-eu-soft:#15322B;
+  --vol-iper:#A6A9F0; --vol-iper-soft:#24254A; --warn:#F2A193; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.9rem,4.5vw,2.8rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.7rem;font-weight:700}
+h3{font-size:1.15rem;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+ul{margin:0;padding-left:1.1em}
+li+li{margin-top:.15em}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:.9em}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.label{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;font-weight:600;color:var(--muted)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{padding-block:28px 20px;display:grid;gap:12px}
+.lede{max-width:66ch;color:var(--muted)}
+nav.chips{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+nav.chips .wrap{display:flex;gap:8px;align-items:center;overflow-x:auto;padding-block:10px;scrollbar-width:thin}
+nav.chips a{flex:none;text-decoration:none;color:var(--ink);font-family:var(--f-mono);font-size:.85rem;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg)}
+nav.chips a:hover{border-color:var(--accent);color:var(--accent)}
+.toggle{flex:none;margin-left:auto;display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:999px;padding:4px 12px;font-family:var(--f-body);font-weight:600}
+.toggle[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+
+main .wrap{display:grid;gap:56px;padding-block:32px 64px}
+section{display:grid;gap:20px;scroll-margin-top:64px}
+.sec-head{display:grid;gap:6px;border-top:3px solid var(--ink);padding-top:14px}
+.sec-head .sym{font-family:var(--f-mono);font-weight:600;font-size:.9rem}
+.sym.low{color:var(--low)} .sym.high{color:var(--high)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:10px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+
+/* reference table */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.93rem;min-width:520px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.num{white-space:nowrap}
+
+/* severity strip */
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.strip>div{padding:10px 14px;border-right:1px solid var(--line);display:grid;gap:2px}
+.strip>div:last-child{border-right:0}
+.strip .v{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* flowchart */
+.flow{display:grid;gap:0;justify-items:center}
+.node{width:100%;max-width:640px;background:var(--surface);border:1.5px solid var(--ink);border-radius:8px;padding:10px 14px;text-align:center;display:grid;gap:2px}
+.node .q{font-family:var(--f-display);font-weight:600}
+.arrow{width:2px;height:22px;background:var(--ink);position:relative}
+.arrow::after{content:"";position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--ink);border-bottom:0}
+.branches{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;position:relative;padding-top:20px;margin-bottom:22px}
+.branches::before{content:"";position:absolute;top:0;left:16.6%;right:16.6%;height:2px;background:var(--ink)}
+.branches>*{position:relative}
+.branches>*::before{content:"";position:absolute;top:-20px;left:50%;width:2px;height:20px;background:var(--ink)}
+.branches.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.branches.two::before{left:25%;right:25%}
+.leaf{border-radius:8px;padding:12px 14px;border:1.5px solid var(--line);background:var(--surface);display:grid;gap:8px;align-content:start;min-width:0}
+.leaf .tag{font-family:var(--f-mono);font-size:.82rem;font-weight:600}
+.leaf.stop{background:var(--sunk);border-style:dashed}
+.leaf.go{border-color:var(--ink)}
+.vol{border-width:2px;padding:0;overflow:hidden}
+.vol>.vh{padding:10px 14px;display:grid;gap:2px}
+.vol>.vb{padding:0 14px 14px;display:grid;gap:10px}
+.vol.ipo{border-color:var(--vol-ipo)} .vol.ipo>.vh{background:var(--vol-ipo-soft)} .vol.ipo h3{color:var(--vol-ipo)}
+.vol.eu{border-color:var(--vol-eu)} .vol.eu>.vh{background:var(--vol-eu-soft)} .vol.eu h3{color:var(--vol-eu)}
+.vol.iper{border-color:var(--vol-iper)} .vol.iper>.vh{background:var(--vol-iper-soft)} .vol.iper h3{color:var(--vol-iper)}
+.una{display:grid;gap:4px;border-left:3px solid var(--line);padding-left:10px}
+.una .k{font-family:var(--f-mono);font-size:.82rem;font-weight:600}
+.tx{font-size:.9rem;background:var(--sunk);border-radius:6px;padding:8px 10px}
+.tx b{font-family:var(--f-display);font-weight:600}
+@media (max-width:760px){
+  .branches,.branches.two{grid-template-columns:1fr;padding-top:0;gap:10px}
+  .branches::before,.branches>*::before{display:none}
+}
+
+/* paired low/high */
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.side{border-radius:10px;border:1.5px solid var(--line);background:var(--surface);display:grid;align-content:start;overflow:hidden;min-width:0}
+.side>.sh{padding:12px 16px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.side>.sb{padding:4px 16px 16px;display:grid;gap:14px}
+.side.low{border-color:var(--low)} .side.low>.sh{background:var(--low-soft)} .side.low h3{color:var(--low)}
+.side.high{border-color:var(--high)} .side.high>.sh{background:var(--high-soft)} .side.high h3{color:var(--high)}
+.mech{display:grid;gap:4px}
+.mech h4{display:flex;gap:8px;align-items:baseline}
+.mech h4 .mono{color:var(--muted);font-weight:400}
+
+/* ecg */
+.ecg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ecg figure{margin:0;background:var(--sunk);border-radius:6px;padding:6px 6px 4px;display:grid;gap:2px}
+.ecg svg{width:100%;height:auto;display:block}
+.ecg path.grid{stroke:var(--line);stroke-width:.4;fill:none}
+.ecg path.tr{stroke:var(--ink);stroke-width:1.4;fill:none;stroke-linejoin:round;stroke-linecap:round}
+.ecg path.tr.h{stroke:var(--high)} .ecg path.tr.l{stroke:var(--low)}
+.ecg figcaption{font-size:.75rem;color:var(--muted);text-align:center;line-height:1.25}
+
+.formula{font-family:var(--f-mono);font-size:.92rem;background:var(--sunk);border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+.steps{counter-reset:s;display:grid;gap:10px;list-style:none;padding:0;margin:0}
+.steps li{counter-increment:s;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;margin:0}
+.steps li::before{content:counter(s);font-family:var(--f-mono);font-weight:600;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-size:.8rem}
+.alert{border-left:4px solid var(--warn);background:var(--high-soft);border-radius:0 8px 8px 0;padding:10px 14px;display:grid;gap:4px}
+.alert strong{color:var(--warn);font-family:var(--f-display)}
+.geri{border:1.5px dashed var(--accent);background:var(--accent-soft);border-radius:10px;padding:14px 16px;display:grid;gap:8px}
+.geri .label{color:var(--accent)}
+.cite{font-size:.78rem;color:var(--muted)}
+.cite a{color:inherit}
+
+/* ripasso mode */
+body.quiz .ans{filter:blur(6px);cursor:pointer;user-select:none;transition:filter .15s}
+body.quiz .ans.shown{filter:none;user-select:auto}
+@media (prefers-reduced-motion:reduce){body.quiz .ans{transition:none}}
+
+ol.refs{display:grid;gap:6px;padding-left:1.4em;font-size:.88rem}
+ol.refs li{margin:0}
+footer .wrap{padding-block:20px 40px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <span class="label">Scheda di ripasso · medicina interna / geriatria</span>
+    <h1>Disordini elettrolitici</h1>
+    <p class="lede">Sodio, potassio, calcio, magnesio, fosforo: algoritmo diagnostico, cause per meccanismo e terapia. Ogni dato rimanda alla fonte numerata in fondo. Con <b>Modalità ripasso</b> cause e terapie vengono oscurate: tocca un blocco per scoprirlo.</p>
+  </div>
+</header>
+
+<nav class="chips" aria-label="Sezioni">
+  <div class="wrap">
+    <a href="#rif">Valori</a>
+    <a href="#ipona">Na ↓</a>
+    <a href="#iperna">Na ↑</a>
+    <a href="#potassio">K</a>
+    <a href="#calcio">Ca</a>
+    <a href="#magnesio">Mg</a>
+    <a href="#fosforo">P</a>
+    <a href="#fonti">Fonti</a>
+    <button class="toggle" id="quizToggle" type="button" aria-pressed="false">Modalità ripasso</button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- ============ RIFERIMENTI ============ -->
+<section id="rif">
+  <div class="sec-head"><span class="label">Valori di riferimento (adulto, indicativi: dipendono dal laboratorio)</span><h2>Range normali</h2></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Parametro</th><th>Unità convenzionali</th><th>SI</th><th>Nota rapida</th></tr></thead>
+      <tbody>
+        <tr><td>Sodio</td><td class="num">135–145 mEq/L</td><td class="num">135–145 mmol/L</td><td>Riflette l'acqua, non il sodio totale</td></tr>
+        <tr><td>Osmolalità plasmatica</td><td class="num">275–295 mOsm/kg</td><td class="num">—</td><td>Calcolata ≈ 2·Na + glucosio/18 + urea(BUN)/2,8</td></tr>
+        <tr><td>Potassio</td><td class="num">3,5–5,0 mEq/L</td><td class="num">3,5–5,0 mmol/L</td><td>98% intracellulare</td></tr>
+        <tr><td>Calcio totale</td><td class="num">8,5–10,5 mg/dL</td><td class="num">2,15–2,60 mmol/L</td><td>Correggere per albumina</td></tr>
+        <tr><td>Calcio ionizzato</td><td class="num">4,5–5,3 mg/dL</td><td class="num">1,12–1,32 mmol/L</td><td>Gold standard se albumina alterata</td></tr>
+        <tr><td>Magnesio</td><td class="num">1,7–2,4 mg/dL</td><td class="num">0,70–1,00 mmol/L</td><td>Sierico sottostima le scorte</td></tr>
+        <tr><td>Fosfato</td><td class="num">2,5–4,5 mg/dL</td><td class="num">0,80–1,45 mmol/L</td><td>Varia con pasti e ritmo circadiano</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ IPONATRIEMIA ============ -->
+<section id="ipona">
+  <div class="sec-head"><span class="sym low">Na⁺ &lt; 135 mmol/L</span><h2>Iponatriemia</h2>
+    <p class="muted small">Il disturbo elettrolitico più frequente nei pazienti ospedalizzati. Quasi sempre è un eccesso relativo di acqua (ADH), non una carenza di sodio. [1][2]</p></div>
+
+  <div class="strip" role="list">
+    <div role="listitem"><span class="label">Lieve</span><span class="v">130–135</span></div>
+    <div role="listitem"><span class="label">Moderata</span><span class="v">125–129</span></div>
+    <div role="listitem"><span class="label">Severa (profound)</span><span class="v">&lt; 125</span></div>
+    <div role="listitem"><span class="label">Acuta / cronica</span><span class="v">&lt; 48 h / ≥ 48 h</span></div>
+  </div>
+  <p class="cite">Classificazione per gravità biochimica e tempo di insorgenza: linea guida europea ESE/ESICM/ERBP [1]. Se l'esordio non è documentabile → considerarla cronica.</p>
+
+  <div class="flow" aria-label="Algoritmo diagnostico dell'iponatriemia">
+    <div class="node"><span class="label">Step 1</span><span class="q">Osmolalità plasmatica misurata</span></div>
+    <div class="arrow"></div>
+    <div class="branches">
+      <div class="leaf stop"><span class="tag">&gt; 295 · ipertonica</span><div class="ans small">Iperglicemia (Na corretto: +1,6–2,4 mmol/L ogni 100 mg/dL di glucosio oltre 100 [3]); mannitolo, mezzi di contrasto.</div></div>
+      <div class="leaf stop"><span class="tag">275–295 · isotonica</span><div class="ans small">Pseudoiponatriemia: ipertrigliceridemia, paraproteine (mieloma). Artefatto del metodo ISE indiretto → ripetere su emogas (ISE diretto). [1]</div></div>
+      <div class="leaf go"><span class="tag">&lt; 275 · ipotonica (vera)</span><div class="small">Prosegui ↓</div></div>
+    </div>
+
+    <div class="node"><span class="label">Step 2</span><span class="q">Osmolalità urinaria</span></div>
+    <div class="arrow"></div>
+    <div class="branches two">
+      <div class="leaf stop"><span class="tag">≤ 100 mOsm/kg · ADH soppresso</span><div class="ans small">Polidipsia primaria; basso apporto di soluti ("tea &amp; toast", beer potomania). [1]</div></div>
+      <div class="leaf go"><span class="tag">&gt; 100 mOsm/kg · ADH attivo</span><div class="small">Prosegui ↓</div></div>
+    </div>
+
+    <div class="node"><span class="label">Step 3</span><span class="q">Volemia clinica (volume extracellulare) + Na urinario</span><span class="small muted">Soglia Na urinario: 30 mmol/L [1]. Diuretici in corso rendono il Na urinario non interpretabile.</span></div>
+    <div class="arrow"></div>
+    <div class="branches">
+      <!-- IPO -->
+      <div class="leaf vol ipo">
+        <div class="vh"><h3>Ipovolemica</h3><span class="small">Perdita di Na &gt; perdita di H₂O</span></div>
+        <div class="vb">
+          <div class="una"><span class="k">UNa &lt; 30 → extrarenale</span><div class="ans small">Diarrea, vomito (fase tardiva), terzo spazio (pancreatite, ustioni, ileo), sudorazione profusa.</div></div>
+          <div class="una"><span class="k">UNa &gt; 30 → renale</span><div class="ans small">Diuretici (tiazidici!), insufficienza surrenalica primaria, nefropatia sodio-disperdente, cerebral salt wasting, vomito con bicarbonaturia (qui Cl urinario basso).</div></div>
+          <div class="tx ans"><b>Terapia:</b> ripristino volemico con NaCl 0,9% (o cristalloide bilanciato) 0,5–1 mL/kg/h; sospendere il diuretico. [1]</div>
+        </div>
+      </div>
+      <!-- EU -->
+      <div class="leaf vol eu">
+        <div class="vh"><h3>Euvolemica</h3><span class="small">Eccesso di H₂O, Na totale normale</span></div>
+        <div class="vb">
+          <div class="una"><span class="k">UNa &gt; 30 (tipico)</span><div class="ans small"><b>SIAD</b> (vedi riquadro), ipotiroidismo severo, deficit di glucocorticoidi (insufficienza surrenalica secondaria), tiazidici, esercizio di endurance.</div></div>
+          <div class="tx ans"><b>Terapia SIAD:</b> 1ª linea restrizione idrica (&lt; 800–1000 mL/die). 2ª linea: urea 0,25–0,50 g/kg/die oppure diuretico dell'ansa a basse dosi + NaCl orale. Tolvaptan: sconsigliato da ESE [1], accettato dal panel USA con cautela (ipercorrezione, epatotossicità) [2].</div>
+        </div>
+      </div>
+      <!-- IPER -->
+      <div class="leaf vol iper">
+        <div class="vh"><h3>Ipervolemica</h3><span class="small">Na totale ↑, H₂O ↑↑ (edemi)</span></div>
+        <div class="vb">
+          <div class="una"><span class="k">UNa &lt; 30</span><div class="ans small">Scompenso cardiaco, cirrosi epatica, sindrome nefrosica (volume circolante efficace ridotto → ADH e RAAS attivati).</div></div>
+          <div class="una"><span class="k">UNa &gt; 30</span><div class="ans small">Insufficienza renale acuta/cronica avanzata; pazienti già in diuretico.</div></div>
+          <div class="tx ans"><b>Terapia:</b> restrizione idrica e sodica, diuretico dell'ansa, trattare la malattia di base. Evitare NaCl isotonica. [1][2]</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <span class="label">Criteri diagnostici SIAD [1]</span>
+      <ul class="small">
+        <li>Osm plasmatica efficace &lt; 275 mOsm/kg</li>
+        <li>Osm urinaria &gt; 100 mOsm/kg</li>
+        <li>Euvolemia clinica</li>
+        <li>Na urinario &gt; 30 mmol/L con apporto normale di sale e acqua</li>
+        <li>Funzione tiroidea e surrenalica normali; no diuretici recenti</li>
+      </ul>
+      <span class="label">Cause di SIAD</span>
+      <ul class="small ans">
+        <li><b>Neoplasie</b>: microcitoma polmonare, testa-collo</li>
+        <li><b>SNC</b>: emorragia, trauma, meningite, ictus</li>
+        <li><b>Polmone</b>: polmonite, TBC, ventilazione a pressione positiva</li>
+        <li><b>Farmaci</b>: SSRI, carbamazepina/oxcarbazepina, antipsicotici, ciclofosfamide, vincristina, MDMA</li>
+        <li><b>Stimoli non osmotici</b>: dolore, nausea, post-operatorio</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="label">Terapia in base ai sintomi [1]</span>
+      <div class="alert"><strong>Sintomi severi</strong><span class="small">vomito, distress cardiorespiratorio, sopore, convulsioni, coma (GCS ≤ 8)</span></div>
+      <ol class="steps small ans">
+        <li><span><b>NaCl 3% 150 mL ev in 20 min</b>, controllo Na dopo 20 min.</span></li>
+        <li><span>Ripetere fino a 2 volte (3 boli in tutto) finché Na +5 mmol/L.</span></li>
+        <li><span>Raggiunto +5: stop ipertonica, ricerca della causa.</span></li>
+      </ol>
+      <p class="small"><b>Sintomi moderati</b> (nausea senza vomito, confusione, cefalea): singolo bolo 150 mL di NaCl 3% in 20 min, obiettivo +5 mmol/L/24 h. [1] Un RCT (SALSA) ha confrontato boli rapidi intermittenti con l'infusione continua lenta: efficacia simile, meno ri-abbassamenti terapeutici con i boli. [4]</p>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <span class="label">Limiti di correzione: rischio di demielinizzazione osmotica (ODS)</span>
+      <div class="ans small" style="display:grid;gap:6px">
+        <p><b>ESE 2014:</b> ≤ 10 mmol/L nelle prime 24 h, ≤ 8 mmol/L in ogni 24 h successive. [1]</p>
+        <p><b>Panel USA 2013:</b> obiettivo minimo 4–8 mmol/L/24 h; limite 10–12, ridotto a <b>8</b> se alto rischio. [2]</p>
+        <p><b>Alto rischio ODS:</b> Na ≤ 105, ipokaliemia, alcolismo, malnutrizione, epatopatia avanzata. [2]</p>
+      </div>
+    </div>
+    <div class="card">
+      <span class="label">Se si supera il limite (ipercorrezione) [1]</span>
+      <ul class="small ans">
+        <li>Sospendere la terapia in corso</li>
+        <li>Acqua libera di elettroliti (glucosata 5%) 10 mL/kg in 1 h, con monitoraggio stretto</li>
+        <li>Valutare desmopressina 2 µg ev, non più spesso di ogni 8 h</li>
+      </ul>
+      <p class="cite">Attenzione: dopo aver corretto la causa (es. ipovolemia, sospensione tiazidico) l'ADH si spegne e compare acquaresi → il Na sale rapidamente da solo.</p>
+    </div>
+  </div>
+
+  <div class="geri">
+    <span class="label">Rilevanza geriatrica</span>
+    <ul class="small">
+      <li>Anche un'iponatriemia cronica <b>lieve</b> (media 126 mmol/L, pazienti "asintomatici") si associa a deficit dell'attenzione, instabilità della marcia e cadute (21% vs 5% nei controlli). [5]</li>
+      <li>Farmaci tipici dell'anziano da ricercare sempre: tiazidici, SSRI, carbamazepina/oxcarbazepina. [1][2]</li>
+      <li>Basso apporto di soluti ("tea &amp; toast") in anziani malnutriti: Uosm ≤ 100. [1]</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ IPERNATRIEMIA ============ -->
+<section id="iperna">
+  <div class="sec-head"><span class="sym high">Na⁺ &gt; 145 mmol/L</span><h2>Ipernatriemia</h2>
+    <p class="muted small">Sempre iperosmolare. È un deficit di acqua rispetto al sodio: compare quando sete o accesso all'acqua sono compromessi (anziani, allettati, deficit cognitivo, intubati, neonati). [6]</p></div>
+
+  <div class="flow" aria-label="Algoritmo dell'ipernatriemia">
+    <div class="node"><span class="label">Valuta</span><span class="q">Volemia + osmolalità urinaria</span></div>
+    <div class="arrow"></div>
+    <div class="branches">
+      <div class="leaf vol ipo">
+        <div class="vh"><h3>Ipovolemica</h3><span class="small">Perdita di H₂O &gt; perdita di Na</span></div>
+        <div class="vb">
+          <div class="una"><span class="k">Uosm alta, UNa &lt; 20 → extrarenale</span><div class="ans small">Sudorazione, ustioni, diarrea osmotica, perdite insensibili, fistole.</div></div>
+          <div class="una"><span class="k">Uosm iso/variabile, UNa &gt; 20 → renale</span><div class="ans small">Diuresi osmotica (glicosuria, urea, mannitolo), diuretici dell'ansa, fase poliurica post-ostruttiva.</div></div>
+        </div>
+      </div>
+      <div class="leaf vol eu">
+        <div class="vh"><h3>Euvolemica</h3><span class="small">Perdita di acqua pura</span></div>
+        <div class="vb">
+          <div class="una"><span class="k">Uosm &lt; 300 → urina inappropriatamente diluita</span><div class="ans small"><b>Diabete insipido</b>, oggi rinominato deficit di AVP (centrale) o resistenza all'AVP (nefrogenico: litio, ipercalcemia, ipokaliemia) [7]. Test con desmopressina: Uosm aumenta nettamente → centrale; aumento minimo → nefrogenico. [6]</div></div>
+          <div class="una"><span class="k">Uosm alta</span><div class="ans small">Perdite insensibili (febbre, tachipnea) + mancato accesso all'acqua; ipodipsia.</div></div>
+        </div>
+      </div>
+      <div class="leaf vol iper">
+        <div class="vh"><h3>Ipervolemica</h3><span class="small">Guadagno di Na</span></div>
+        <div class="vb">
+          <div class="una"><span class="k">UNa &gt; 20</span><div class="ans small">Iatrogena: NaHCO₃, NaCl ipertonica, nutrizione/farmaci ricchi di sodio; ingestione di acqua di mare; iperaldosteronismo primario (di solito lieve).</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <span class="label">Formule [6]</span>
+      <p class="small">Acqua corporea totale (ACT) = peso × <span class="mono">0,6</span> uomo adulto · <span class="mono">0,5</span> donna adulta e uomo anziano · <span class="mono">0,45</span> donna anziana</p>
+      <div class="formula">Deficit H₂O (L) = ACT × (Na/140 − 1)</div>
+      <div class="formula">ΔNa per 1 L infuso = (Na infuso − Na sierico) / (ACT + 1)</div>
+      <p class="cite">La seconda formula (Adrogué-Madias) vale anche per l'iponatriemia; per soluzioni con K aggiungere il K infuso al Na infuso. Na infuso: glucosata 5% = 0; NaCl 0,45% = 77; NaCl 0,9% = 154; NaCl 3% = 513 mmol/L.</p>
+    </div>
+    <div class="card">
+      <span class="label">Terapia [6]</span>
+      <ul class="small ans">
+        <li>Se shock/ipovolemia severa: prima NaCl 0,9%, poi soluzioni ipotoniche.</li>
+        <li>Fluidi ipotonici: glucosata 5%, NaCl 0,45%; via orale/sondino quando possibile.</li>
+        <li><b>Cronica (&gt; 48 h):</b> riduzione ≤ 10 mmol/L/24 h (≈ 0,5 mmol/L/h) per evitare l'edema cerebrale.</li>
+        <li><b>Acuta (ore):</b> si può correggere più rapidamente, ≈ 1 mmol/L/h.</li>
+        <li>Deficit di AVP: desmopressina. Resistenza all'AVP: tiazidico, restrizione di sale/proteine, sospendere litio se possibile.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ POTASSIO ============ -->
+<section id="potassio">
+  <div class="sec-head"><span class="sym">K⁺</span><h2>Potassio</h2>
+    <p class="muted small">Tre meccanismi per entrambi i disturbi: <b>apporto</b>, <b>shift</b> trans-cellulare, <b>escrezione</b> (rene/intestino). Il pericolo è aritmico: guardare sempre l'ECG.</p></div>
+
+  <div class="pair">
+    <!-- IPOK -->
+    <div class="side low">
+      <div class="sh"><h3>Ipokaliemia</h3><span class="mono">&lt; 3,5 · severa &lt; 2,5</span></div>
+      <div class="sb">
+        <div class="mech"><h4>Shift intracellulare</h4><p class="small ans">Insulina, β2-agonisti, alcalosi, refeeding, paralisi periodica ipokaliemica (tireotossica).</p></div>
+        <div class="mech"><h4>Perdite extrarenali <span class="mono">UK &lt; 20 mmol/die</span></h4><p class="small ans">Diarrea, lassativi, fistole (spesso con acidosi metabolica).</p></div>
+        <div class="mech"><h4>Perdite renali <span class="mono">UK &gt; 20 mmol/die</span></h4>
+          <div class="small ans" style="display:grid;gap:4px">
+            <p><b>+ ipertensione:</b> iperaldosteronismo primario, stenosi dell'arteria renale, Cushing, liquirizia, Liddle.</p>
+            <p><b>+ normotensione e alcalosi:</b> diuretici, vomito, Bartter, Gitelman.</p>
+            <p><b>+ normotensione e acidosi:</b> acidosi tubulare renale (tipo 1-2), chetoacidosi.</p>
+            <p><b>Sempre:</b> ipomagnesiemia (mantiene la secrezione distale di K).</p>
+          </div>
+        </div>
+        <p class="cite">Algoritmo e cause: Kardalas et al. [8]. In alternativa al K urinario 24 h si usa il rapporto K/creatinina urinario (&lt; 13 mEq/g → extrarenale).</p>
+        <div class="ecg">
+          <figure><svg viewBox="0 0 80 60" role="img" aria-label="ECG normale"><path class="grid" d="M0 20H80M0 40H80M20 0V60M40 0V60M60 0V60"/><path class="tr" d="M2 40H10Q14 32 18 40H24L26 44L29 12L32 50L35 40H44Q50 24 56 40H78"/></svg><figcaption>Normale</figcaption></figure>
+          <figure><svg viewBox="0 0 80 60" role="img" aria-label="ECG in ipokaliemia: T piatta, sottoslivellamento ST, onda U"><path class="grid" d="M0 20H80M0 40H80M20 0V60M40 0V60M60 0V60"/><path class="tr l" d="M2 40H10Q14 32 18 40H24L26 44L29 12L32 50L35 43H41Q47 38 53 41Q60 28 67 40H78"/></svg><figcaption>T piatta, ST ↓, onda U</figcaption></figure>
+          <figure><svg viewBox="0 0 80 60" role="img" aria-label="Rischio di torsione di punta"><path class="grid" d="M0 20H80M0 40H80M20 0V60M40 0V60M60 0V60"/><path class="tr l" d="M2 40L6 28L10 52L14 22L18 58L22 18L26 58L30 22L34 54L38 30L42 48L46 26L50 54L54 20L58 58L62 22L66 54L70 30L74 46L78 40"/></svg><figcaption>QU lungo → aritmie, TdP</figcaption></figure>
+        </div>
+        <div class="tx ans"><b>Terapia [8]:</b> KCl per os se possibile. Ev: di norma ≤ 10 mmol/h in vena periferica; velocità superiori solo in via centrale con monitoraggio ECG. Mai in bolo. <b>Correggere il Mg</b>, altrimenti l'ipokaliemia resta refrattaria. Clinica: astenia, crampi, ileo, rabdomiolisi.</div>
+      </div>
+    </div>
+
+    <!-- IPERK -->
+    <div class="side high">
+      <div class="sh"><h3>Iperkaliemia</h3><span class="mono">lieve 5,5–5,9 · moderata 6,0–6,4 · severa ≥ 6,5</span></div>
+      <div class="sb">
+        <div class="mech"><h4>Prima: escludere pseudo-iperkaliemia</h4><p class="small ans">Emolisi del campione, laccio prolungato/pugno chiuso, trombocitosi o leucocitosi marcate, ritardo di processazione.</p></div>
+        <div class="mech"><h4>Shift extracellulare</h4><p class="small ans">Acidosi metabolica, deficit di insulina (DKA), β-bloccanti, digitale, rabdomiolisi, lisi tumorale, succinilcolina, iperosmolarità.</p></div>
+        <div class="mech"><h4>Ridotta escrezione renale</h4><p class="small ans">Insufficienza renale acuta/cronica; ipoaldosteronismo (ATR tipo 4, Addison); farmaci: ACE-i, sartani, antagonisti mineralcorticoidi, risparmiatori di K, FANS, trimetoprim, eparina, inibitori della calcineurina.</p></div>
+        <p class="cite">Cause e fisiopatologia: KDIGO Controversies Conference [9]. Soglie di gravità: UK Kidney Association, aggiornamento luglio 2026 [10].</p>
+        <div class="ecg">
+          <figure><svg viewBox="0 0 80 60" role="img" aria-label="T alta e appuntita"><path class="grid" d="M0 20H80M0 40H80M20 0V60M40 0V60M60 0V60"/><path class="tr h" d="M2 40H10Q14 32 18 40H24L26 44L29 12L32 50L35 40H43L49 8L55 40H78"/></svg><figcaption>T alte, appuntite</figcaption></figure>
+          <figure><svg viewBox="0 0 80 60" role="img" aria-label="P appiattita, PR lungo, QRS largo"><path class="grid" d="M0 20H80M0 40H80M20 0V60M40 0V60M60 0V60"/><path class="tr h" d="M2 40H8Q13 38 18 40H26L29 46L33 16L38 54L43 40H46L52 12L58 40H78"/></svg><figcaption>P ↓, PR ↑, QRS largo</figcaption></figure>
+          <figure><svg viewBox="0 0 80 60" role="img" aria-label="Onda sinusoidale"><path class="grid" d="M0 20H80M0 40H80M20 0V60M40 0V60M60 0V60"/><path class="tr h" d="M2 40C8 40 10 14 18 14S28 56 38 56S48 14 58 14S68 50 78 46"/></svg><figcaption>Sine wave → FV/asistolia</figcaption></figure>
+        </div>
+        <div class="tx ans" style="display:grid;gap:6px">
+          <p><b>Terapia d'urgenza [10]</b></p>
+          <ol class="steps">
+            <li><span><b>Proteggi il cuore</b> (se alterazioni ECG): calcio gluconato 10% 30 mL ev in 10 min, oppure calcio cloruro 10% 10 mL in 5 min (preferito in arresto/peri-arresto). Grado della raccomandazione ridotto a 2C nel 2026 per scarsità di evidenze.</span></li>
+            <li><span><b>Sposta il K nelle cellule</b>: insulina rapida 10 U + glucosio 25 g ev (severa; considerare nella moderata). Se glicemia pre-trattamento &lt; 7 mmol/L (≈ 126 mg/dL): glucosata 10% 50 mL/h per 5 h. Salbutamolo 10–20 mg nebulizzato come aggiunta, mai da solo. Bicarbonato non di routine.</span></li>
+            <li><span><b>Elimina il K</b>: sodio zirconio ciclosilicato (severa; considerare nella moderata) o patiromer (K ≥ 6,0); diuretico dell'ansa se euvolemico; dialisi se refrattaria o anurica.</span></li>
+            <li><span><b>Monitora</b>: glicemia a 0, 30, 60, 90, 120, 180, 240, 300, 360 min; K a 1, 2, 4, 6, 24 h.</span></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="geri">
+    <span class="label">Rilevanza geriatrica</span>
+    <p class="small">Nell'anziano con IRC e politerapia è frequente l'associazione ACE-i/sartano + antagonista mineralcorticoide + FANS o trimetoprim: rivalutare i farmaci prima di sospendere il blocco del RAAS; i leganti del K servono proprio a mantenerlo. [9][10]</p>
+  </div>
+</section>
+
+<!-- ============ CALCIO ============ -->
+<section id="calcio">
+  <div class="sec-head"><span class="sym">Ca²⁺</span><h2>Calcio</h2>
+    <p class="muted small">Il primo esame dopo la conferma è il <b>PTH</b>: divide entrambi i disturbi in PTH-dipendenti e PTH-indipendenti.</p></div>
+
+  <div class="formula">Ca corretto (mg/dL) = Ca totale + 0,8 × (4,0 − albumina g/dL)</div>
+  <p class="cite">Stima approssimativa; nei pazienti critici, con IRC o alterazioni acido-base misurare il calcio ionizzato. [11]</p>
+
+  <div class="pair">
+    <div class="side low">
+      <div class="sh"><h3>Ipocalcemia</h3><span class="mono">&lt; 8,5 mg/dL · &lt; 2,15 mmol/L</span></div>
+      <div class="sb">
+        <div class="mech"><h4>PTH basso / inappropriato</h4><p class="small ans">Post-chirurgia tiroidea o paratiroidea (causa più comune), autoimmune, infiltrativa, <b>ipomagnesiemia</b> (riduce secrezione e azione del PTH).</p></div>
+        <div class="mech"><h4>PTH alto (secondario)</h4><p class="small ans">Deficit di vitamina D, IRC, iperfosfatemia (rabdomiolisi, lisi tumorale), pancreatite acuta, hungry bone post-paratiroidectomia, bisfosfonati/denosumab.</p></div>
+        <div class="mech"><h4>Clinica</h4><p class="small ans">Parestesie periorali e acrali, crampi, tetania, segni di Chvostek e Trousseau, laringospasmo, convulsioni; ECG: QT lungo.</p></div>
+        <div class="tx ans"><b>Terapia [12]:</b> sintomatica/acuta: calcio gluconato 10% 10–20 mL ev in 10 min (in 50–100 mL di glucosata 5%) con monitoraggio ECG, poi infusione continua. Correggere il Mg. Cronica: calcio orale + vitamina D (calcitriolo se ipoparatiroidismo).</div>
+      </div>
+    </div>
+
+    <div class="side high">
+      <div class="sh"><h3>Ipercalcemia</h3><span class="mono">lieve &lt; 12 · moderata 12–14 · severa &gt; 14 mg/dL</span></div>
+      <div class="sb">
+        <div class="mech"><h4>PTH alto / inappropriatamente normale</h4><p class="small ans">Iperparatiroidismo primario (causa più comune ambulatoriale), terziario (IRC), litio; FHH (calcio urinario basso: non operare).</p></div>
+        <div class="mech"><h4>PTH soppresso</h4><p class="small ans">Neoplasie (causa più comune in ospedale): PTHrP (squamocellulari), metastasi osteolitiche, mieloma; vitamina D: intossicazione, granulomatosi (sarcoidosi, linfomi: 1,25-OH-D ↑); tiazidici, sindrome latte-alcali, ipertiroidismo, immobilizzazione.</p></div>
+        <div class="mech"><h4>Clinica</h4><p class="small ans">"Stones, bones, abdominal groans, psychic moans": nefrolitiasi, poliuria, dolore osseo, stipsi, nausea, confusione; ECG: QT corto.</p></div>
+        <div class="tx ans"><b>Terapia [11]:</b> NaCl 0,9% ev (prima misura); bisfosfonato ev (zoledronato); calcitonina per effetto rapido ma transitorio (tachifilassi); denosumab se IRC o refrattaria; glucocorticoidi se mediata da vitamina D (granulomi, linfomi); dialisi nei casi estremi. Diuretico dell'ansa solo dopo ripristino della volemia.</div>
+      </div>
+    </div>
+  </div>
+  <p class="cite">Soglie di gravità e cause: Minisola et al. [11]. Ipocalcemia: Cooper &amp; Gittoes [12].</p>
+</section>
+
+<!-- ============ MAGNESIO ============ -->
+<section id="magnesio">
+  <div class="sec-head"><span class="sym">Mg²⁺</span><h2>Magnesio</h2>
+    <p class="muted small">L'ipomagnesiemia è la causa nascosta di ipokaliemia e ipocalcemia refrattarie. [13]</p></div>
+  <div class="pair">
+    <div class="side low">
+      <div class="sh"><h3>Ipomagnesiemia</h3><span class="mono">&lt; 1,7 mg/dL · &lt; 0,70 mmol/L</span></div>
+      <div class="sb">
+        <div class="mech"><h4>Perdite GI / ridotto assorbimento</h4><p class="small ans">Diarrea cronica, malassorbimento, <b>inibitori di pompa protonica</b> a lungo termine, malnutrizione.</p></div>
+        <div class="mech"><h4>Perdite renali</h4><p class="small ans">Diuretici dell'ansa e tiazidici, alcol, cisplatino, aminoglicosidi, amfotericina B, inibitori della calcineurina, Gitelman.</p></div>
+        <div class="mech"><h4>Redistribuzione</h4><p class="small ans">Refeeding, hungry bone, pancreatite.</p></div>
+        <div class="tx ans"><b>Clinica:</b> tremori, tetania, convulsioni, aritmie ventricolari, torsione di punta. <b>Terapia:</b> torsione di punta → MgSO₄ 1–2 g ev [14]; forme severe ev, forme lievi per os.</div>
+      </div>
+    </div>
+    <div class="side high">
+      <div class="sh"><h3>Ipermagnesiemia</h3><span class="mono">&gt; 2,4 mg/dL · &gt; 1,00 mmol/L</span></div>
+      <div class="sb">
+        <div class="mech"><h4>Cause</h4><p class="small ans">Quasi sempre iatrogena su IRC: antiacidi e lassativi a base di Mg, clisteri; MgSO₄ ev (pre-eclampsia).</p></div>
+        <div class="mech"><h4>Clinica (progressiva)</h4><p class="small ans">Iporeflessia (primo segno), nausea, ipotensione, bradicardia, sonnolenza, depressione respiratoria, arresto cardiaco.</p></div>
+        <div class="tx ans"><b>Terapia:</b> sospendere la fonte; calcio gluconato ev come antagonista; idratazione + diuretico dell'ansa; dialisi se IRC severa. [13]</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOSFORO ============ -->
+<section id="fosforo">
+  <div class="sec-head"><span class="sym">PO₄³⁻</span><h2>Fosfato</h2></div>
+  <div class="pair">
+    <div class="side low">
+      <div class="sh"><h3>Ipofosfatemia</h3><span class="mono">&lt; 2,5 mg/dL · severa &lt; 1,0</span></div>
+      <div class="sb">
+        <div class="mech"><h4>Shift intracellulare</h4><p class="small ans"><b>Sindrome da rialimentazione</b>, terapia insulinica della DKA, alcalosi respiratoria.</p></div>
+        <div class="mech"><h4>Perdite renali</h4><p class="small ans">Iperparatiroidismo, Fanconi, eccesso di FGF23: anche da <b>ferro carbossimaltosio</b> ev (incidenza molto più alta che con ferro derisomaltosio in RCT [16]).</p></div>
+        <div class="mech"><h4>Ridotto assorbimento</h4><p class="small ans">Alcolismo, malnutrizione, antiacidi chelanti, deficit di vitamina D.</p></div>
+        <div class="tx ans"><b>Clinica (forme severe):</b> debolezza muscolare, insufficienza respiratoria (difficoltà di svezzamento dal ventilatore), disfunzione cardiaca, rabdomiolisi, emolisi, confusione. <b>Terapia:</b> per os se lieve-moderata; ev se severa o sintomatica. [15]</div>
+      </div>
+    </div>
+    <div class="side high">
+      <div class="sh"><h3>Iperfosfatemia</h3><span class="mono">&gt; 4,5 mg/dL · &gt; 1,45 mmol/L</span></div>
+      <div class="sb">
+        <div class="mech"><h4>Ridotta escrezione</h4><p class="small ans">IRC (causa più frequente), ipoparatiroidismo.</p></div>
+        <div class="mech"><h4>Carico endogeno / esogeno</h4><p class="small ans">Lisi tumorale, rabdomiolisi, emolisi; clisteri o lassativi al fosfato (specie in anziani con IRC), intossicazione da vitamina D.</p></div>
+        <div class="tx ans"><b>Conseguenze:</b> ipocalcemia acuta, calcificazioni vascolari e dei tessuti molli. <b>Terapia:</b> restrizione dietetica, chelanti del fosfato, dialisi nelle forme acute severe. [17]</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FONTI ============ -->
+<section id="fonti">
+  <div class="sec-head"><span class="label">Bibliografia</span><h2>Fonti</h2></div>
+  <ol class="refs">
+    <li>Spasovski G, et al. Clinical practice guideline on diagnosis and treatment of hyponatraemia. <i>Eur J Endocrinol</i> 2014;170:G1–G47. <a href="https://doi.org/10.1530/EJE-13-1020" target="_blank" rel="noopener">doi:10.1530/EJE-13-1020</a></li>
+    <li>Verbalis JG, et al. Diagnosis, evaluation, and treatment of hyponatremia: expert panel recommendations. <i>Am J Med</i> 2013;126(10 Suppl 1):S1–S42. <a href="https://doi.org/10.1016/j.amjmed.2013.07.006" target="_blank" rel="noopener">doi:10.1016/j.amjmed.2013.07.006</a></li>
+    <li>Hillier TA, et al. Hyponatremia: evaluating the correction factor for hyperglycemia. <i>Am J Med</i> 1999;106:399–403. <a href="https://doi.org/10.1016/S0002-9343(99)00055-8" target="_blank" rel="noopener">doi:10.1016/S0002-9343(99)00055-8</a></li>
+    <li>Baek SH, et al. Risk of overcorrection in rapid intermittent bolus vs slow continuous infusion therapies of hypertonic saline (SALSA). <i>JAMA Intern Med</i> 2021;181:81–92. <a href="https://doi.org/10.1001/jamainternmed.2020.5519" target="_blank" rel="noopener">doi:10.1001/jamainternmed.2020.5519</a></li>
+    <li>Renneboog B, et al. Mild chronic hyponatremia is associated with falls, unsteadiness, and attention deficits. <i>Am J Med</i> 2006;119:71.e1–8. <a href="https://doi.org/10.1016/j.amjmed.2005.09.026" target="_blank" rel="noopener">doi:10.1016/j.amjmed.2005.09.026</a></li>
+    <li>Adrogué HJ, Madias NE. Hypernatremia. <i>N Engl J Med</i> 2000;342:1493–9. <a href="https://doi.org/10.1056/NEJM200005183422006" target="_blank" rel="noopener">doi:10.1056/NEJM200005183422006</a></li>
+    <li>Arima H, et al. Changing the name of diabetes insipidus: a position statement of the Working Group for Renaming Diabetes Insipidus. 2022 (pubblicato in contemporanea su più riviste endocrinologiche). <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10534955/" target="_blank" rel="noopener">PMC10534955</a></li>
+    <li>Kardalas E, et al. Hypokalemia: a clinical update. <i>Endocr Connect</i> 2018;7:R135–R146. <a href="https://doi.org/10.1530/EC-18-0109" target="_blank" rel="noopener">doi:10.1530/EC-18-0109</a></li>
+    <li>Clase CM, et al. Potassium homeostasis and management of dyskalemia in kidney diseases: KDIGO Controversies Conference. <i>Kidney Int</i> 2020;97:42–61. <a href="https://doi.org/10.1016/j.kint.2019.09.018" target="_blank" rel="noopener">doi:10.1016/j.kint.2019.09.018</a></li>
+    <li>UK Kidney Association. Clinical practice guideline: management of hyperkalaemia in adults. Aggiornamento luglio 2026 (linea guida, non rivista peer-reviewed). <a href="https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf" target="_blank" rel="noopener">PDF</a></li>
+    <li>Minisola S, et al. The diagnosis and management of hypercalcaemia. <i>BMJ</i> 2015;350:h2723. <a href="https://doi.org/10.1136/bmj.h2723" target="_blank" rel="noopener">doi:10.1136/bmj.h2723</a></li>
+    <li>Cooper MS, Gittoes NJL. Diagnosis and management of hypocalcaemia. <i>BMJ</i> 2008;336:1298–302. <a href="https://doi.org/10.1136/bmj.39582.589433.BE" target="_blank" rel="noopener">doi:10.1136/bmj.39582.589433.BE</a></li>
+    <li>de Baaij JHF, Hoenderop JGJ, Bindels RJM. Magnesium in man: implications for health and disease. <i>Physiol Rev</i> 2015;95:1–46. <a href="https://doi.org/10.1152/physrev.00012.2014" target="_blank" rel="noopener">doi:10.1152/physrev.00012.2014</a></li>
+    <li>Panchal AR, et al. Part 3: Adult basic and advanced life support. 2020 AHA Guidelines for CPR and ECC. <i>Circulation</i> 2020;142:S366–S468. <a href="https://doi.org/10.1161/CIR.0000000000000916" target="_blank" rel="noopener">doi:10.1161/CIR.0000000000000916</a></li>
+    <li>Gaasbeek A, Meinders AE. Hypophosphatemia: an update on its etiology and treatment. <i>Am J Med</i> 2005;118:1094–101. <a href="https://doi.org/10.1016/j.amjmed.2005.02.014" target="_blank" rel="noopener">doi:10.1016/j.amjmed.2005.02.014</a></li>
+    <li>Wolf M, et al. Effects of iron isomaltoside vs ferric carboxymaltose on hypophosphatemia in iron-deficiency anemia: two RCTs (PHOSPHARE). <i>JAMA</i> 2020;323:432–43. <a href="https://doi.org/10.1001/jama.2019.22450" target="_blank" rel="noopener">doi:10.1001/jama.2019.22450</a></li>
+    <li>Leung J, Crook M. Disorders of phosphate metabolism. <i>J Clin Pathol</i> 2019;72:741–7. <a href="https://doi.org/10.1136/jclinpath-2018-205130" target="_blank" rel="noopener">doi:10.1136/jclinpath-2018-205130</a></li>
+  </ol>
+</section>
+
+</div>
+</main>
+
+<footer><div class="wrap">Scheda di studio. Dosi e soglie vanno sempre verificate sui protocolli dell'ospedale e sulle schede tecniche.</div></footer>
+
+<script>
+(function(){
+  var btn=document.getElementById('quizToggle');
+  function set(on){
+    document.body.classList.toggle('quiz',on);
+    btn.setAttribute('aria-pressed',on?'true':'false');
+    btn.textContent=on?'Ripasso attivo':'Modalità ripasso';
+    if(!on){document.querySelectorAll('.ans.shown').forEach(function(e){e.classList.remove('shown')})}
+    try{localStorage.setItem('quiz',on?'1':'0')}catch(e){}
+  }
+  btn.addEventListener('click',function(){set(!document.body.classList.contains('quiz'))});
+  document.addEventListener('click',function(ev){
+    if(!document.body.classList.contains('quiz'))return;
+    var a=ev.target.closest('.ans'); if(!a)return;
+    if(!a.classList.contains('shown')){ev.preventDefault();a.classList.add('shown')}
+  });
+  var saved=null; try{saved=localStorage.getItem('quiz')}catch(e){}
+  if(saved==='1')set(true);
+})();
+</script>

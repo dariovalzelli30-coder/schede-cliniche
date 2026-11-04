@@ -1,0 +1,510 @@
+<title>Approccio ABCDE</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: ottava scheda della serie. Una colonna per lettera (valuta → tratta → chiama), poi strumenti: parametri con NEWS2 e consegna SBAR generata */
+:root{
+  --bg:#F3F6F6; --surface:#FFFFFF; --sunk:#E8EEEF; --ink:#13232A; --muted:#55666D; --line:#CFDADC;
+  --accent:#0E6673; --accent-soft:#D9ECEE;
+  --red:#B0432B; --red-soft:#F7E4DF; --amber:#9A6410; --amber-soft:#F5EAD6;
+  --green:#2F7466; --green-soft:#DCEFEA; --blue:#2B5FAE; --blue-soft:#E1EAF7; --violet:#6A4BA6; --violet-soft:#ECE5F6;
+  --warn:#8A2B1E;
+  --f-display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --red:#EE9580; --red-soft:#3A221D; --amber:#E2AE5A; --amber-soft:#352914; --green:#71C3AF; --green-soft:#15322B;
+  --blue:#86AEEB; --blue-soft:#1A2A42; --violet:#B9A3EC; --violet-soft:#2A2340; --warn:#F2A193; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --red:#EE9580; --red-soft:#3A221D; --amber:#E2AE5A; --amber-soft:#352914; --green:#71C3AF; --green-soft:#15322B;
+  --blue:#86AEEB; --blue-soft:#1A2A42; --violet:#B9A3EC; --violet-soft:#2A2340; --warn:#F2A193; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.9rem,4.5vw,2.8rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.7rem;font-weight:700}
+h3{font-size:1.1rem;font-weight:600}
+h4{font-size:.92rem;font-weight:600}
+p{margin:0}
+ul,ol{margin:0;padding-left:1.1em}
+li+li{margin-top:.15em}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:.9em}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.label{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;font-weight:600;color:var(--muted)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{padding-block:28px 20px;display:grid;gap:12px}
+.lede{max-width:70ch;color:var(--muted)}
+nav.chips{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+nav.chips .wrap{display:flex;gap:8px;align-items:center;overflow-x:auto;padding-block:10px;scrollbar-width:thin}
+nav.chips a{flex:none;text-decoration:none;color:var(--ink);font-family:var(--f-mono);font-size:.85rem;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg)}
+nav.chips a:hover{border-color:var(--accent);color:var(--accent)}
+.toggle{flex:none;margin-left:auto;font-size:.88rem;cursor:pointer;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:999px;padding:4px 12px;font-family:var(--f-body);font-weight:600}
+.toggle[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+
+main .wrap{display:grid;gap:56px;padding-block:32px 64px}
+section{display:grid;gap:20px;scroll-margin-top:64px}
+.sec-head{display:grid;gap:6px;border-top:3px solid var(--ink);padding-top:14px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:10px;min-width:0;align-content:start}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.88rem;min-width:620px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.sc{font-weight:600;font-family:var(--f-display)}
+td.s3{background:var(--red-soft)} td.s2{background:var(--amber-soft)} td.s1{background:var(--blue-soft)} td.s0{background:var(--green-soft)}
+.num{white-space:nowrap}
+
+/* principi */
+.princ{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.princ div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:4px}
+.princ b{font-family:var(--f-display)}
+
+/* lettere */
+.letter{display:grid;grid-template-columns:76px 1fr;border-radius:12px;overflow:hidden;border:2px solid var(--ink);background:var(--surface)}
+.letter>.L{display:grid;place-items:center;align-content:center;gap:2px;color:#fff;font-family:var(--f-display);font-weight:700;font-size:2.4rem;line-height:1}
+.letter>.L small{font-size:.62rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;text-align:center;padding:0 4px}
+.letter.a{border-color:var(--red)} .letter.a>.L{background:var(--red)}
+.letter.b{border-color:var(--amber)} .letter.b>.L{background:var(--amber)}
+.letter.c{border-color:var(--blue)} .letter.c>.L{background:var(--blue)}
+.letter.d{border-color:var(--violet)} .letter.d>.L{background:var(--violet)}
+.letter.e{border-color:var(--green)} .letter.e>.L{background:var(--green)}
+.letter>.body{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+.letter .col{padding:12px 14px;display:grid;gap:6px;align-content:start;border-left:1px solid var(--line);min-width:0}
+.letter .col:first-child{border-left:0}
+.letter .col ul{font-size:.87rem}
+.letter .col.call{background:var(--sunk)}
+@media (max-width:860px){.letter>.body{grid-template-columns:1fr}.letter .col{border-left:0;border-top:1px solid var(--line)}.letter .col:first-child{border-top:0}}
+@media (max-width:480px){.letter{grid-template-columns:52px 1fr}.letter>.L{font-size:1.8rem}.letter>.L small{display:none}}
+:root[data-theme="dark"] .letter>.L,:root:not([data-theme="light"]) .letter>.L{color:#fff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .letter>.L{color:#0E1619}}
+:root[data-theme="dark"] .letter>.L{color:#0E1619}
+
+/* strumenti */
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.fld{display:grid;gap:4px}
+.fld label{font-size:.8rem;font-weight:600;color:var(--muted)}
+input[type=number],select,textarea{width:100%;font:inherit;font-size:16px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);min-height:42px}
+textarea{min-height:64px;resize:vertical}
+.score{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:10px;padding:12px 14px;border-left:5px solid var(--green);background:var(--green-soft)}
+.score .v{font-family:var(--f-mono);font-weight:600;font-size:2rem;font-variant-numeric:tabular-nums}
+.score.lo{border-left-color:var(--blue);background:var(--blue-soft)}
+.score.mid{border-left-color:var(--amber);background:var(--amber-soft)}
+.score.hi{border-left-color:var(--red);background:var(--red-soft)}
+.score .t{display:grid;gap:2px;font-size:.9rem;max-width:60ch}
+.score .t b{font-family:var(--f-display)}
+.chips2{display:flex;gap:6px;flex-wrap:wrap}
+.chk{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.85rem;background:var(--surface);cursor:pointer;min-height:38px}
+.chk input{width:18px;height:18px;accent-color:var(--accent)}
+.out{font-family:var(--f-mono);font-size:.84rem;white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;min-height:120px}
+.btn{font:inherit;font-size:.9rem;font-weight:600;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 14px;cursor:pointer;min-height:42px}
+.btn.pri{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.btn:active{transform:scale(.98)}
+
+.alert{border-left:4px solid var(--warn);background:var(--red-soft);border-radius:0 8px 8px 0;padding:10px 14px;display:grid;gap:4px}
+.alert strong{color:var(--warn);font-family:var(--f-display)}
+.note{border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;padding:10px 14px;display:grid;gap:4px}
+.note strong{font-family:var(--f-display)}
+.geri{border:1.5px dashed var(--accent);background:var(--accent-soft);border-radius:10px;padding:14px 16px;display:grid;gap:8px}
+.geri .label{color:var(--accent)}
+.cite{font-size:.78rem;color:var(--muted)}
+
+body.quiz .ans{filter:blur(6px);cursor:pointer;user-select:none;transition:filter .15s}
+body.quiz .ans.shown{filter:none;user-select:auto}
+@media (prefers-reduced-motion:reduce){body.quiz .ans{transition:none}}
+ol.refs{display:grid;gap:6px;padding-left:1.6em;font-size:.86rem}
+ol.refs li{margin:0}
+footer .wrap{padding-block:20px 40px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <span class="label">Scheda operativa · paziente critico o che peggiora · adulto</span>
+    <h1>Approccio ABCDE</h1>
+    <p class="lede">Lo stesso schema per ogni paziente che sta male: valuta una lettera, tratta subito ciò che minaccia la vita, poi passa alla successiva e rivaluta. Per ogni lettera: cosa guardare, cosa fare, quando chiamare aiuto. In fondo: parametri con calcolo del NEWS2 e consegna SBAR pronta da copiare.</p>
+  </div>
+</header>
+
+<nav class="chips" aria-label="Sezioni">
+  <div class="wrap">
+    <a href="#principi">Principi</a>
+    <a href="#primi">Primi 30 s</a>
+    <a href="#lettere">A B C D E</a>
+    <a href="#dopo">Dopo l'ABCDE</a>
+    <a href="#news2">NEWS2 e SBAR</a>
+    <a href="#tabella">Tabella NEWS2</a>
+    <a href="#fonti">Fonti</a>
+    <button class="toggle" id="quizToggle" type="button" aria-pressed="false">Modalità ripasso</button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- PRINCIPI -->
+<section id="principi">
+  <div class="sec-head"><span class="label">Le regole del gioco</span><h2>Principi</h2></div>
+  <div class="princ">
+    <div><b>Sempre lo stesso ordine</b><span class="small">A → B → C → D → E, per ogni paziente critico o che peggiora [1][2].</span></div>
+    <div><b>Tratta prima di andare avanti</b><span class="small">Un problema che minaccia la vita si corregge alla sua lettera, non alla fine [1].</span></div>
+    <div><b>Rivaluta</b><span class="small">Dopo ogni intervento, aspettando qualche minuto che agisca; ricomincia da A se peggiora [1].</span></div>
+    <div><b>Chiama aiuto presto</b><span class="small">E distribuisci i compiti: più persone lavorano in parallelo [1].</span></div>
+    <div><b>Obiettivo iniziale</b><span class="small">Mantenerlo vivo e ottenere un miglioramento: la diagnosi può aspettare qualche minuto [1].</span></div>
+    <div><b>Comunica in modo strutturato</b><span class="small">SBAR per chiamare e consegnare [1][7].</span></div>
+  </div>
+</section>
+
+<!-- PRIMI 30 S -->
+<section id="primi">
+  <div class="sec-head"><span class="label">Prima di iniziare</span><h2>Primi 30 secondi</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <ol class="small ans">
+        <li><b>Sicurezza</b> e dispositivi di protezione.</li>
+        <li><b>Guarda, ascolta, senti</b> (circa 30 s): colorito, respiro, sudorazione, come risponde.</li>
+        <li>Chiedi: "Come sta?". Risponde normalmente → A pervia, respira, perfonde il cervello. Frasi brevi → problema respiratorio. Non risponde → è critico [1].</li>
+        <li><b>Non risponde e non respira normalmente</b> → arresto cardiaco: inizia la RCP (scheda BLSD e ALS).</li>
+        <li>Fai collegare <b>saturimetro, monitor ECG, pressione</b>; posiziona un <b>accesso venoso</b> e preleva subito gli esami [1].</li>
+      </ol>
+    </div>
+    <div class="note"><strong>Frase per chiedere aiuto</strong><span class="small">"Sono il dottor ___, sono in stanza ___ con un paziente che respira male e ha la pressione bassa: mi serve subito il medico di guardia (o il team di emergenza)." Poi continua con la valutazione mentre arrivano.</span></div>
+  </div>
+</section>
+
+<!-- LETTERE -->
+<section id="lettere">
+  <div class="sec-head"><span class="label">Valuta → tratta → chiama</span><h2>A B C D E</h2></div>
+
+  <div class="letter a"><div class="L">A<small>Airway</small></div><div class="body">
+    <div class="col"><h4>Valuta</h4><ul class="ans">
+      <li>Parla? Rumori: russamento, gorgoglio, stridore</li>
+      <li>Respiro paradosso (torace e addome "a bilancia"), muscoli accessori</li>
+      <li>Ostruzione completa: nessun flusso d'aria alla bocca; la cianosi è un segno tardivo</li>
+      <li>Causa più frequente: <b>coscienza ridotta</b> [1]</li></ul></div>
+    <div class="col"><h4>Tratta</h4><ul class="ans">
+      <li>Iperestensione del capo e sollevamento del mento (o sublussazione della mandibola nel trauma)</li>
+      <li>Aspirazione; cannula orofaringea o nasofaringea</li>
+      <li><b>Ossigeno ad alti flussi</b> con maschera con reservoir (15 L/min), poi titolare [1][4]</li>
+      <li>Soffocamento: colpi dorsali e compressioni addominali</li>
+      <li>Anafilassi: <b>adrenalina 0,5 mg im</b> [6]</li></ul></div>
+    <div class="col call"><h4>Chiama subito</h4><ul class="ans">
+      <li>Ostruzione delle vie aeree: è un'emergenza, aiuto esperto (anestesista) immediato [1]</li>
+      <li>Se le manovre semplici falliscono: intubazione da parte dell'esperto</li></ul></div>
+  </div></div>
+
+  <div class="letter b"><div class="L">B<small>Breathing</small></div><div class="body">
+    <div class="col"><h4>Valuta</h4><ul class="ans">
+      <li><b>Frequenza respiratoria</b> (12–20 normale; &gt; 25 o in aumento = allarme) [1]</li>
+      <li>SpO₂ e ossigeno somministrato; <b>la SpO₂ non vede l'ipercapnia</b> → EGA</li>
+      <li>Espansione e simmetria, trachea, giugulari</li>
+      <li>Percussione: iperfonesi (pneumotorace), ottusità (versamento, addensamento)</li>
+      <li>Auscultazione: sibili, rantoli, silenzio</li></ul></div>
+    <div class="col"><h4>Tratta</h4><ul class="ans">
+      <li>Target SpO₂ <b>94–98%</b>; <b>88–92%</b> se a rischio di ipercapnia (BPCO, obesità grave, malattie neuromuscolari): maschera Venturi 24–28% e EGA [4]</li>
+      <li>Trattare subito: pneumotorace iperteso, asma grave, edema polmonare, emotorace massivo [1]</li>
+      <li>Respiro inadeguato: pallone-maschera</li>
+      <li>NIV nel paziente collaborante (es. BPCO riacutizzata con acidosi) [1]</li></ul></div>
+    <div class="col call"><h4>Chiama subito</h4><ul class="ans">
+      <li>Necessità di ventilare con pallone-maschera</li>
+      <li>Insufficienza respiratoria che non migliora con l'ossigeno</li>
+      <li>Fatica respiratoria, coscienza in calo con ipercapnia</li></ul></div>
+  </div></div>
+
+  <div class="letter c"><div class="L">C<small>Circulation</small></div><div class="body">
+    <div class="col"><h4>Valuta</h4><ul class="ans">
+      <li>Colorito e temperatura delle estremità, marezzature</li>
+      <li><b>Riempimento capillare</b>: premi il polpastrello 5 s all'altezza del cuore; normale &lt; 2 s (allungato anche da freddo ed età) [1]</li>
+      <li>FC e ritmo, polsi centrali e periferici, PA (una PA normale non esclude lo shock)</li>
+      <li>Diuresi (&lt; 0,5 mL/kg/h = ridotta), giugulari</li>
+      <li>Sanguinamenti esterni e occulti (torace, addome, pelvi, retroperitoneo, intestino)</li></ul></div>
+    <div class="col"><h4>Tratta</h4><ul class="ans">
+      <li>Uno o due accessi venosi di grosso calibro (14–16 G); prelievi, emocolture se febbre, prove crociate</li>
+      <li>Ipotensione: <b>bolo di 500 mL di cristalloide in &lt; 15 min</b> (250 mL se scompenso o trauma), rivalutare dopo ogni bolo e auscultare i polmoni [1]</li>
+      <li>Obiettivo: la PA abituale del paziente o sistolica &gt; 100 mmHg [1]</li>
+      <li>Segni di scompenso (rantoli, giugulari turgide) → fermare i fluidi</li>
+      <li>Sospetta sepsi: emocolture e antibiotico entro 1 ora se shock o sepsi probabile; lattato [5]</li>
+      <li>Sospetta sindrome coronarica: ECG 12 derivazioni, aspirina 300 mg, nitrato sublinguale, ossigeno solo se SpO₂ &lt; 94% [1]</li></ul></div>
+    <div class="col call"><h4>Chiama subito</h4><ul class="ans">
+      <li>Nessuna risposta a boli ripetuti di fluidi [1]</li>
+      <li>Aritmie con segni avversi (scheda BLSD e ALS)</li>
+      <li>Emorragia massiva, tamponamento, shock settico</li></ul></div>
+  </div></div>
+
+  <div class="letter d"><div class="L">D<small>Disability</small></div><div class="body">
+    <div class="col"><h4>Valuta</h4><ul class="ans">
+      <li><b>ACVPU</b>: Alert, Confusione nuova, Voce, dolore (Pain), Unresponsive; o GCS [1][3]</li>
+      <li><b>Pupille</b>: dimensioni, simmetria, reattività</li>
+      <li><b>Glicemia capillare</b> (venosa o arteriosa nel peri-arresto)</li>
+      <li>Deficit di lato, crisi, rigidità nucale</li>
+      <li>Terapia: sedativi, oppioidi, insulina</li></ul></div>
+    <div class="col"><h4>Tratta</h4><ul class="ans">
+      <li>Prima correggere ipossia e ipotensione (le cause più comuni di coscienza ridotta) [1]</li>
+      <li>Glicemia &lt; 4 mmol/L (≈ 72 mg/dL) nel paziente non cosciente: <b>glucosio 10% 50 mL ev</b>, ripetibile ogni minuto fino a 250 mL; ricontrollare [1]</li>
+      <li>Oppioidi: naloxone [1]</li>
+      <li>Vie aeree non protette: posizione laterale [1]</li>
+      <li>Approfondimento: scheda Esame neurologico in emergenza</li></ul></div>
+    <div class="col call"><h4>Chiama subito</h4><ul class="ans">
+      <li>Coscienza "P" o "U" (≈ GCS ≤ 8)</li>
+      <li>Segni di ictus: percorso ictus</li>
+      <li>Crisi che non si ferma in 5 minuti</li></ul></div>
+  </div></div>
+
+  <div class="letter e"><div class="L">E<small>Exposure</small></div><div class="body">
+    <div class="col"><h4>Valuta</h4><ul class="ans">
+      <li>Esporre il paziente rispettando dignità e temperatura [1]</li>
+      <li>Temperatura</li>
+      <li>Cute: rash (petecchie), lesioni da pressione, ferite, ematomi</li>
+      <li>Addome, polpacci (trombosi), drenaggi, cateteri e accessi (fonte di infezione?)</li>
+      <li>Perdite: sangue, melena, vomito</li></ul></div>
+    <div class="col"><h4>Tratta</h4><ul class="ans">
+      <li>Controllo della temperatura, coperte</li>
+      <li>Rimuovere o sostituire dispositivi infetti</li>
+      <li>Controllo dell'emorragia</li></ul></div>
+    <div class="col call"><h4>Poi</h4><ul class="ans">
+      <li>Anamnesi completa (paziente, familiari, personale), cartella, terapia, andamento dei parametri, esami [1]</li>
+      <li>Decidere il livello di cura: reparto, subintensiva, terapia intensiva [1]</li></ul></div>
+  </div></div>
+</section>
+
+<!-- DOPO -->
+<section id="dopo">
+  <div class="sec-head"><span class="label">Il ciclo non finisce</span><h2>Dopo l'ABCDE</h2></div>
+  <div class="grid2">
+    <div class="card"><span class="label">Rivalutazione [1]</span>
+      <ul class="small ans">
+        <li>Ripetere l'ABCDE dopo ogni intervento e a intervalli regolari.</li>
+        <li>Durante i fluidi: FC e PA ogni 5 minuti.</li>
+        <li>Se peggiora: ricominciare da A.</li>
+        <li>Documentare: rilievi, interventi, risposta.</li>
+      </ul></div>
+    <div class="card"><span class="label">Domande da porsi prima di consegnare</span>
+      <ul class="small ans">
+        <li>Qual è la diagnosi più probabile e cosa la confermerebbe?</li>
+        <li>Il paziente sta migliorando con quello che ho fatto?</li>
+        <li>Quale livello di cura serve? Ci sono limitazioni terapeutiche già decise (es. non RCP)?</li>
+        <li>Chi deve saperlo adesso (senior, specialista, familiari)?</li>
+      </ul></div>
+  </div>
+  <div class="geri"><span class="label">Rilevanza geriatrica</span>
+    <ul class="small">
+      <li>Una PA "normale" può essere già ipotensione per un iperteso: confrontare con i valori abituali [1].</li>
+      <li>β-bloccanti e pacemaker mascherano la tachicardia; la febbre può mancare nelle infezioni gravi.</li>
+      <li>Il delirium è spesso il primo segno di peggioramento: è un rilievo della D (la "C" di ACVPU è la confusione di nuova insorgenza) [3].</li>
+      <li>Nei BPCO con ipercapnia nota, usare la scala 2 della SpO₂ del NEWS2 solo su indicazione del medico [3][4].</li>
+    </ul></div>
+</section>
+
+<!-- NEWS2 E SBAR -->
+<section id="news2">
+  <div class="sec-head"><span class="label">Strumento</span><h2>Parametri, NEWS2 e consegna SBAR</h2>
+    <p class="muted small">Inserisci i parametri: il NEWS2 si calcola da solo e la consegna SBAR si compone con i dati inseriti, pronta da copiare o leggere al telefono. I dati restano solo su questo dispositivo.</p></div>
+  <div class="card">
+    <div class="form">
+      <div class="fld"><label for="rr">Frequenza respiratoria /min</label><input type="number" id="rr" inputmode="numeric" min="0" max="80"></div>
+      <div class="fld"><label for="spo2">SpO₂ %</label><input type="number" id="spo2" inputmode="numeric" min="50" max="100"></div>
+      <div class="fld"><label for="scale">Scala SpO₂</label><select id="scale"><option value="1">Scala 1 (target 94–98%)</option><option value="2">Scala 2 (ipercapnia, target 88–92%)</option></select></div>
+      <div class="fld"><label for="o2">Aria o ossigeno</label><select id="o2"><option value="air">Aria ambiente</option><option value="o2">Ossigeno</option></select></div>
+      <div class="fld"><label for="sbp">PA sistolica mmHg</label><input type="number" id="sbp" inputmode="numeric" min="30" max="300"></div>
+      <div class="fld"><label for="hr">Frequenza cardiaca /min</label><input type="number" id="hr" inputmode="numeric" min="10" max="250"></div>
+      <div class="fld"><label for="cvpu">Coscienza (ACVPU)</label><select id="cvpu"><option value="A">A · vigile</option><option value="C">C · confusione nuova</option><option value="V">V · risponde alla voce</option><option value="P">P · risponde al dolore</option><option value="U">U · non risponde</option></select></div>
+      <div class="fld"><label for="temp">Temperatura °C</label><input type="number" id="temp" inputmode="decimal" step="0.1" min="25" max="45"></div>
+      <div class="fld"><label for="glu">Glicemia mg/dL (non nel NEWS2)</label><input type="number" id="glu" inputmode="numeric" min="10" max="1000"></div>
+    </div>
+    <div class="score" id="nScore"><span class="v" id="nTot">—</span><span class="t" id="nTxt"><b>Inserisci i parametri</b><span>Servono tutti e sette per un NEWS2 completo.</span></span></div>
+
+    <span class="label">Problemi rilevati (spunta)</span>
+    <div class="chips2" id="probs">
+      <label class="chk"><input type="checkbox" value="A: vie aeree a rischio">A · vie aeree</label>
+      <label class="chk"><input type="checkbox" value="B: insufficienza respiratoria">B · respiro</label>
+      <label class="chk"><input type="checkbox" value="C: ipoperfusione / shock">C · circolo</label>
+      <label class="chk"><input type="checkbox" value="C: aritmia">C · aritmia</label>
+      <label class="chk"><input type="checkbox" value="D: coscienza ridotta o delirium">D · coscienza</label>
+      <label class="chk"><input type="checkbox" value="D: deficit neurologico focale">D · deficit focale</label>
+      <label class="chk"><input type="checkbox" value="E: sospetta infezione / sepsi">E · infezione</label>
+      <label class="chk"><input type="checkbox" value="E: sanguinamento">E · sanguinamento</label>
+    </div>
+
+    <div class="grid2" style="gap:10px">
+      <div class="fld"><label for="sS">S · Situazione (chi sei, chi è il paziente, cosa succede)</label><textarea id="sS" placeholder="Es. Sono il dott. Rossi, reparto Medicina, stanza 12. Chiamo per il sig. B., 84 anni, dispnoico e ipoteso da 30 minuti."></textarea></div>
+      <div class="fld"><label for="sB">B · Background (ricovero, comorbidità, terapia, limitazioni)</label><textarea id="sB" placeholder="Es. Ricoverato per polmonite, BPCO, FA in anticoagulante. Nessuna limitazione terapeutica in cartella."></textarea></div>
+      <div class="fld"><label for="sA">A · Valutazione (cosa pensi che sia; cosa hai già fatto)</label><textarea id="sA" placeholder="Es. Sospetto shock settico. Ho dato ossigeno, 500 mL di cristalloide, prelevato emocolture e lattato."></textarea></div>
+      <div class="fld"><label for="sR">R · Richiesta (cosa ti serve e entro quando)</label>
+        <select id="sR">
+          <option value="Chiedo che venga a valutare il paziente subito.">Venga a vedere il paziente subito</option>
+          <option value="Chiedo una valutazione entro 30 minuti.">Valutazione entro 30 minuti</option>
+          <option value="Chiedo una valutazione per trasferimento in area critica.">Valutazione per area critica</option>
+          <option value="Chiedo indicazioni su come procedere nel frattempo.">Indicazioni su come procedere</option>
+        </select></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" type="button" id="copy">Copia SBAR</button><button class="btn" type="button" id="clear">Cancella dati</button></div>
+    <div class="out" id="sbar" aria-live="polite"></div>
+    <p class="cite">NEWS2 secondo Royal College of Physicians [3]. Il punteggio supporta il giudizio clinico, non lo sostituisce: si chiama aiuto anche con NEWS2 basso se si è preoccupati [3].</p>
+  </div>
+</section>
+
+<!-- TABELLA NEWS2 -->
+<section id="tabella">
+  <div class="sec-head"><span class="label">Riferimento</span><h2>Tabella NEWS2</h2></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Parametro</th><th>3</th><th>2</th><th>1</th><th>0</th><th>1</th><th>2</th><th>3</th></tr></thead>
+      <tbody class="num">
+        <tr><td class="sc">Frequenza respiratoria</td><td class="s3">≤ 8</td><td></td><td class="s1">9–11</td><td class="s0">12–20</td><td></td><td class="s2">21–24</td><td class="s3">≥ 25</td></tr>
+        <tr><td class="sc">SpO₂ scala 1</td><td class="s3">≤ 91</td><td class="s2">92–93</td><td class="s1">94–95</td><td class="s0">≥ 96</td><td></td><td></td><td></td></tr>
+        <tr><td class="sc">SpO₂ scala 2</td><td class="s3">≤ 83</td><td class="s2">84–85</td><td class="s1">86–87</td><td class="s0">88–92 · ≥ 93 in aria</td><td class="s1">93–94 in O₂</td><td class="s2">95–96 in O₂</td><td class="s3">≥ 97 in O₂</td></tr>
+        <tr><td class="sc">Aria o ossigeno</td><td></td><td class="s2">ossigeno</td><td></td><td class="s0">aria</td><td></td><td></td><td></td></tr>
+        <tr><td class="sc">PA sistolica</td><td class="s3">≤ 90</td><td class="s2">91–100</td><td class="s1">101–110</td><td class="s0">111–219</td><td></td><td></td><td class="s3">≥ 220</td></tr>
+        <tr><td class="sc">Frequenza cardiaca</td><td class="s3">≤ 40</td><td></td><td class="s1">41–50</td><td class="s0">51–90</td><td class="s1">91–110</td><td class="s2">111–130</td><td class="s3">≥ 131</td></tr>
+        <tr><td class="sc">Coscienza</td><td></td><td></td><td></td><td class="s0">Vigile</td><td></td><td></td><td class="s3">C, V, P, U</td></tr>
+        <tr><td class="sc">Temperatura °C</td><td class="s3">≤ 35,0</td><td></td><td class="s1">35,1–36,0</td><td class="s0">36,1–38,0</td><td class="s1">38,1–39,0</td><td class="s2">≥ 39,1</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>NEWS2</th><th>Rischio</th><th>Monitoraggio</th><th>Risposta</th></tr></thead>
+      <tbody class="ans">
+        <tr><td class="num">0</td><td>Basso</td><td>Almeno ogni 12 h</td><td>Monitoraggio di routine</td></tr>
+        <tr><td class="num">1–4</td><td>Basso</td><td>Almeno ogni 4–6 h</td><td>Valutazione infermieristica; avvisare il medico se preoccupa</td></tr>
+        <tr><td class="num">3 in un singolo parametro</td><td>Basso-medio</td><td>Almeno ogni ora</td><td>Valutazione medica urgente</td></tr>
+        <tr><td class="num">5–6</td><td>Medio</td><td>Almeno ogni ora</td><td>Valutazione medica urgente; con infezione sospetta, pensare alla sepsi</td></tr>
+        <tr><td class="num">≥ 7</td><td>Alto</td><td>Continuo</td><td>Risposta d'emergenza: medico esperto subito, valutare area critica</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cite">Royal College of Physicians, NEWS2 (2017) [3]. Le modalità di attivazione dipendono dal protocollo dell'ospedale.</p>
+</section>
+
+<!-- FONTI -->
+<section id="fonti">
+  <div class="sec-head"><span class="label">Bibliografia</span><h2>Fonti</h2></div>
+  <ol class="refs">
+    <li>Resuscitation Council UK. The ABCDE approach. <a href="https://www.resus.org.uk/print/pdf/node/123" target="_blank" rel="noopener">RCUK</a></li>
+    <li>Thim T, Krarup NHV, Grove EL, Rohde CV, Løfgren B. Initial assessment and treatment with the Airway, Breathing, Circulation, Disability, Exposure (ABCDE) approach. <i>Int J Gen Med</i> 2012;5:117–21. <a href="https://doi.org/10.2147/IJGM.S28478" target="_blank" rel="noopener">doi:10.2147/IJGM.S28478</a></li>
+    <li>Royal College of Physicians. National Early Warning Score (NEWS) 2: standardising the assessment of acute-illness severity in the NHS. London: RCP, 2017. <a href="https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/" target="_blank" rel="noopener">RCP</a> · tabella e soglie riprodotte in <a href="https://policyonline.nhslothian.scot/wp-content/uploads/2026/08/NEWS2-Chart.pdf" target="_blank" rel="noopener">NHS Lothian</a></li>
+    <li>O'Driscoll BR, Howard LS, Earis J, Mak V. BTS guideline for oxygen use in adults in healthcare and emergency settings. <i>Thorax</i> 2017;72(Suppl 1):ii1–ii90. <a href="https://doi.org/10.1136/thoraxjnl-2016-209729" target="_blank" rel="noopener">doi:10.1136/thoraxjnl-2016-209729</a></li>
+    <li>Evans L, et al. Surviving Sepsis Campaign: international guidelines for management of sepsis and septic shock 2021. <i>Intensive Care Med</i> 2021;47:1181–247. <a href="https://doi.org/10.1007/s00134-021-06506-y" target="_blank" rel="noopener">doi:10.1007/s00134-021-06506-y</a></li>
+    <li>Resuscitation Council UK. Special circumstances guidelines 2025 (anafilassi). <a href="https://www.resus.org.uk/professional-library/2025-resuscitation-guidelines/special-circumstances-guidelines" target="_blank" rel="noopener">RCUK 2025</a></li>
+    <li>Müller M, et al. Impact of the communication and patient hand-off tool SBAR on patient safety: a systematic review. <i>BMJ Open</i> 2018;8:e022202. <a href="https://doi.org/10.1136/bmjopen-2018-022202" target="_blank" rel="noopener">doi:10.1136/bmjopen-2018-022202</a></li>
+  </ol>
+</section>
+
+</div>
+</main>
+
+<footer><div class="wrap">Scheda operativa, ottava della serie. Adulti. Si usa insieme alle schede "BLSD e ALS operativo" ed "Esame neurologico in emergenza". Non sostituisce i protocolli di attivazione del proprio ospedale.</div></footer>
+
+<script>
+(function(){
+function $(id){return document.getElementById(id);}
+var F=['rr','spo2','scale','o2','sbp','hr','cvpu','temp','glu','sS','sB','sA','sR'];
+var KEY='abcde-sbar-v1';
+function num(id){var v=$(id).value; if(v===''||v==null)return null; var n=parseFloat(String(v).replace(',','.')); return isNaN(n)?null:n;}
+function sRR(x){return x<=8?3:x<=11?1:x<=20?0:x<=24?2:3;}
+function sSp1(x){return x<=91?3:x<=93?2:x<=95?1:0;}
+function sSp2(x,o2){ if(x<=83)return 3; if(x<=85)return 2; if(x<=87)return 1; if(x<=92)return 0; if(!o2)return 0; return x<=94?1:x<=96?2:3;}
+function sBP(x){return x<=90?3:x<=100?2:x<=110?1:x<=219?0:3;}
+function sHR(x){return x<=40?3:x<=50?1:x<=90?0:x<=110?1:x<=130?2:3;}
+function sT(x){return x<=35.0?3:x<=36.0?1:x<=38.0?0:x<=39.0?1:2;}
+function calc(){
+  var rr=num('rr'),sp=num('spo2'),bp=num('sbp'),hr=num('hr'),t=num('temp');
+  var o2=$('o2').value==='o2', scale=$('scale').value, cv=$('cvpu').value;
+  var parts=[], missing=0, max3=false, tot=0;
+  function add(v,lab){ if(v===null){missing++;return;} tot+=v; if(v===3)max3=true; parts.push(lab+' '+v); }
+  add(rr===null?null:sRR(rr),'FR');
+  add(sp===null?null:(scale==='2'?sSp2(sp,o2):sSp1(sp)),'SpO₂');
+  add(o2?2:0,'O₂');
+  add(bp===null?null:sBP(bp),'PAS');
+  add(hr===null?null:sHR(hr),'FC');
+  add(cv==='A'?0:3,'Coscienza');
+  add(t===null?null:sT(t),'T');
+  var box=$('nScore'), tx=$('nTxt');
+  if(missing===5&&rr===null){ $('nTot').textContent='—'; box.className='score'; tx.innerHTML='<b>Inserisci i parametri</b><span>Servono tutti e sette per un NEWS2 completo.</span>'; return {tot:null,missing:missing}; }
+  $('nTot').textContent=tot+(missing?'+':'');
+  var cls,head,msg;
+  if(tot>=7){cls='hi';head='Rischio alto · risposta d\'emergenza';msg='Monitoraggio continuo; medico esperto subito, valutare area critica.';}
+  else if(tot>=5){cls='mid';head='Rischio medio · risposta urgente';msg='Valutazione medica urgente; monitoraggio almeno ogni ora. Con infezione sospetta, pensare alla sepsi.';}
+  else if(max3){cls='mid';head='Un parametro a 3 · risposta urgente';msg='Valutazione medica urgente del parametro alterato; monitoraggio almeno ogni ora.';}
+  else if(tot>=1){cls='lo';head='Rischio basso';msg='Monitoraggio almeno ogni 4–6 h; avvisare il medico se preoccupa.';}
+  else {cls='';head='Rischio basso';msg='Monitoraggio di routine.';}
+  if(missing){msg+=' Mancano '+missing+' parametri: il punteggio può essere più alto.';}
+  box.className='score '+cls; tx.innerHTML='<b>'+head+'</b><span>'+msg+'</span><span class="small muted">'+parts.join(' · ')+'</span>';
+  return {tot:tot,missing:missing,head:head};
+}
+function sbar(res){
+  var v=function(id){return $(id).value.trim();};
+  var vit=[];
+  if(num('rr')!==null)vit.push('FR '+num('rr'));
+  if(num('spo2')!==null)vit.push('SpO₂ '+num('spo2')+'% '+($('o2').value==='o2'?'in ossigeno':'in aria'));
+  if(num('sbp')!==null)vit.push('PAS '+num('sbp'));
+  if(num('hr')!==null)vit.push('FC '+num('hr'));
+  vit.push('coscienza '+$('cvpu').value);
+  if(num('temp')!==null)vit.push('T '+num('temp')+' °C');
+  if(num('glu')!==null)vit.push('glicemia '+num('glu')+' mg/dL');
+  var probs=[].slice.call(document.querySelectorAll('#probs input:checked')).map(function(c){return c.value;});
+  var lines=[];
+  lines.push('S – '+(v('sS')||'[situazione]'));
+  lines.push('B – '+(v('sB')||'[background]'));
+  var a='A – Parametri: '+vit.join(', ')+'.';
+  if(res&&res.tot!==null)a+=' NEWS2 '+res.tot+(res.missing?' (incompleto)':'')+'.';
+  if(probs.length)a+=' Problemi: '+probs.join('; ')+'.';
+  if(v('sA'))a+=' '+v('sA');
+  lines.push(a);
+  lines.push('R – '+$('sR').value);
+  $('sbar').textContent=lines.join('\n\n');
+}
+function save(){try{var o={};F.forEach(function(id){o[id]=$(id).value;});o.probs=[].slice.call(document.querySelectorAll('#probs input')).map(function(c){return c.checked;});localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+function load(){try{var j=localStorage.getItem(KEY); if(!j)return; var o=JSON.parse(j); F.forEach(function(id){if(o[id]!=null)$(id).value=o[id];}); if(o.probs){var cs=document.querySelectorAll('#probs input'); o.probs.forEach(function(c,i){if(cs[i])cs[i].checked=c;});}}catch(e){}}
+function upd(){var r=calc(); sbar(r); save();}
+document.querySelector('#news2').addEventListener('input',upd);
+document.querySelector('#news2').addEventListener('change',upd);
+$('copy').addEventListener('click',function(){
+  var b=$('copy'), txt=$('sbar').textContent;
+  function ok(){b.textContent='Copiato';setTimeout(function(){b.textContent='Copia SBAR';},1500);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok).catch(function(){b.textContent='Copia non disponibile';});}
+  else b.textContent='Copia non disponibile';
+});
+var armed=false;
+$('clear').addEventListener('click',function(){
+  var b=$('clear');
+  if(!armed){armed=true;b.textContent='Tocca di nuovo per cancellare';setTimeout(function(){armed=false;b.textContent='Cancella dati';},3000);return;}
+  armed=false;b.textContent='Cancella dati';
+  F.forEach(function(id){var e=$(id); if(e.tagName==='SELECT')e.selectedIndex=0; else e.value='';});
+  document.querySelectorAll('#probs input').forEach(function(c){c.checked=false;});
+  try{localStorage.removeItem(KEY);}catch(e){} upd();
+});
+load(); upd();
+
+/* ripasso */
+var btn=$('quizToggle');
+function setQ(on){
+  document.body.classList.toggle('quiz',on);
+  btn.setAttribute('aria-pressed',on?'true':'false');
+  btn.textContent=on?'Ripasso attivo':'Modalità ripasso';
+  if(!on){document.querySelectorAll('.ans.shown').forEach(function(e){e.classList.remove('shown');});}
+  try{localStorage.setItem('quiz',on?'1':'0');}catch(e){}
+}
+btn.addEventListener('click',function(){setQ(!document.body.classList.contains('quiz'));});
+document.addEventListener('click',function(ev){
+  if(!document.body.classList.contains('quiz'))return;
+  var a=ev.target.closest('.ans'); if(!a)return;
+  if(!a.classList.contains('shown')){ev.preventDefault();a.classList.add('shown');}
+});
+var saved=null; try{saved=localStorage.getItem('quiz');}catch(e){}
+if(saved==='1')setQ(true);
+})();
+</script>

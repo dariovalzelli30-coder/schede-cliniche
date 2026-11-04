@@ -1,0 +1,559 @@
+<title>Delirium, demenze, psicosi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: quinta scheda della serie. Percorso a nodi come in acido-base; codice colore: delirium rosso (urgenza), demenza blu, psicosi viola, depressione ambra */
+:root{
+  --bg:#F3F6F6; --surface:#FFFFFF; --sunk:#E8EEEF; --ink:#13232A; --muted:#55666D; --line:#CFDADC;
+  --accent:#0E6673; --accent-soft:#D9ECEE;
+  --del:#B0432B; --del-soft:#F7E4DF;
+  --dem:#2B5FAE; --dem-soft:#E1EAF7;
+  --psy:#6A4BA6; --psy-soft:#ECE5F6;
+  --dep:#9A6410; --dep-soft:#F5EAD6;
+  --ok:#2F7466; --ok-soft:#DCEFEA;
+  --warn:#8A2B1E;
+  --f-display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --del:#EE9580; --del-soft:#3A221D; --dem:#86AEEB; --dem-soft:#1A2A42; --psy:#B9A3EC; --psy-soft:#2A2340;
+  --dep:#E2AE5A; --dep-soft:#352914; --ok:#71C3AF; --ok-soft:#15322B; --warn:#F2A193; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --del:#EE9580; --del-soft:#3A221D; --dem:#86AEEB; --dem-soft:#1A2A42; --psy:#B9A3EC; --psy-soft:#2A2340;
+  --dep:#E2AE5A; --dep-soft:#352914; --ok:#71C3AF; --ok-soft:#15322B; --warn:#F2A193; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.9rem,4.5vw,2.8rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.7rem;font-weight:700}
+h3{font-size:1.1rem;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+ul,ol{margin:0;padding-left:1.1em}
+li+li{margin-top:.15em}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:.9em}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.label{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;font-weight:600;color:var(--muted)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{padding-block:28px 20px;display:grid;gap:12px}
+.lede{max-width:70ch;color:var(--muted)}
+nav.chips{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+nav.chips .wrap{display:flex;gap:8px;align-items:center;overflow-x:auto;padding-block:10px;scrollbar-width:thin}
+nav.chips a{flex:none;text-decoration:none;color:var(--ink);font-family:var(--f-mono);font-size:.85rem;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg)}
+nav.chips a:hover{border-color:var(--accent);color:var(--accent)}
+.toggle{flex:none;margin-left:auto;font-size:.88rem;cursor:pointer;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:999px;padding:4px 12px;font-family:var(--f-body);font-weight:600}
+.toggle[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+
+main .wrap{display:grid;gap:56px;padding-block:32px 64px}
+section{display:grid;gap:20px;scroll-margin-top:64px}
+.sec-head{display:grid;gap:6px;border-top:3px solid var(--ink);padding-top:14px}
+.sym{font-family:var(--f-mono);font-weight:600;font-size:.9rem}
+.sym.del{color:var(--del)} .sym.dem{color:var(--dem)} .sym.psy{color:var(--psy)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:10px;min-width:0;align-content:start}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:680px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.sc{font-weight:600;font-family:var(--f-display);width:18%}
+th.del{color:var(--del)} th.dem{color:var(--dem)} th.psy{color:var(--psy)} th.dep{color:var(--dep)}
+.num{white-space:nowrap}
+
+/* setting switch */
+.setting{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.setting>div{border-radius:10px;padding:12px 14px;display:grid;gap:4px;border:1.5px solid}
+.setting .ac{border-color:var(--del);background:var(--del-soft)}
+.setting .sa{border-color:var(--dem);background:var(--dem-soft)}
+.setting b{font-family:var(--f-display)}
+@media (max-width:640px){.setting{grid-template-columns:1fr}}
+
+/* flow */
+.flow{display:grid;gap:0;justify-items:center}
+.node{width:100%;max-width:720px;background:var(--surface);border:1.5px solid var(--ink);border-radius:8px;padding:12px 16px;display:grid;gap:6px}
+.node .q{font-family:var(--f-display);font-weight:600;font-size:1.02rem}
+.node.urgent{border-color:var(--del);background:var(--del-soft)}
+.node.urgent .q{color:var(--del)}
+.node ul{font-size:.88rem}
+.arrow{width:2px;height:22px;background:var(--ink);position:relative}
+.arrow::after{content:"";position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--ink);border-bottom:0}
+.branches{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;position:relative;padding-top:20px;margin-bottom:22px}
+.branches::before{content:"";position:absolute;top:0;left:16.6%;right:16.6%;height:2px;background:var(--ink)}
+.branches>*{position:relative}
+.branches>*::before{content:"";position:absolute;top:-20px;left:50%;width:2px;height:20px;background:var(--ink)}
+.branches.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.branches.two::before{left:25%;right:25%}
+.leaf{border-radius:8px;padding:12px 14px;border:2px solid var(--line);background:var(--surface);display:grid;gap:6px;align-content:start;min-width:0}
+.leaf .tag{font-family:var(--f-mono);font-size:.8rem;font-weight:600}
+.leaf.del{border-color:var(--del);background:var(--del-soft)} .leaf.del .tag{color:var(--del)}
+.leaf.dem{border-color:var(--dem);background:var(--dem-soft)} .leaf.dem .tag{color:var(--dem)}
+.leaf.psy{border-color:var(--psy);background:var(--psy-soft)} .leaf.psy .tag{color:var(--psy)}
+.leaf.dep{border-color:var(--dep);background:var(--dep-soft)} .leaf.dep .tag{color:var(--dep)}
+.leaf.go{border-color:var(--ink)}
+@media (max-width:760px){
+  .branches,.branches.two{grid-template-columns:1fr;padding-top:0;gap:10px}
+  .branches::before,.branches>*::before{display:none}
+}
+
+.side{border-radius:10px;border:1.5px solid var(--line);background:var(--surface);display:grid;align-content:start;overflow:hidden;min-width:0}
+.side>.sh{padding:12px 16px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.side>.sb{padding:4px 16px 16px;display:grid;gap:12px}
+.side.del{border-color:var(--del)} .side.del>.sh{background:var(--del-soft)} .side.del h3{color:var(--del)}
+.side.dem{border-color:var(--dem)} .side.dem>.sh{background:var(--dem-soft)} .side.dem h3{color:var(--dem)}
+.side.psy{border-color:var(--psy)} .side.psy>.sh{background:var(--psy-soft)} .side.psy h3{color:var(--psy)}
+
+.score{display:grid;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.score>div{display:grid;grid-template-columns:1fr auto;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:.88rem}
+.score>div:last-child{border-bottom:0}
+.score .pt{font-family:var(--f-mono);font-weight:600;white-space:nowrap;text-align:right}
+.score .h{background:var(--sunk);font-family:var(--f-display);font-weight:600}
+.cut{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-radius:8px;overflow:hidden;border:1.5px solid var(--ink)}
+.cut>div{padding:8px 10px;display:grid;gap:2px;font-size:.85rem}
+.cut>div+div{border-left:1.5px solid var(--ink)}
+.cut .r{font-family:var(--f-mono);font-weight:600}
+.cut .z0{background:var(--ok-soft)} .cut .z1{background:var(--dep-soft)} .cut .z2{background:var(--del-soft)}
+@media (max-width:520px){.cut{grid-template-columns:1fr}.cut>div+div{border-left:0;border-top:1.5px solid var(--ink)}}
+
+.alert{border-left:4px solid var(--warn);background:var(--del-soft);border-radius:0 8px 8px 0;padding:10px 14px;display:grid;gap:4px}
+.alert strong{color:var(--warn);font-family:var(--f-display)}
+.note{border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;padding:10px 14px;display:grid;gap:4px}
+.note strong{font-family:var(--f-display)}
+.geri{border:1.5px dashed var(--accent);background:var(--accent-soft);border-radius:10px;padding:14px 16px;display:grid;gap:8px}
+.geri .label{color:var(--accent)}
+.cite{font-size:.78rem;color:var(--muted)}
+.tier{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.tier>div{border-radius:10px;padding:12px 14px;display:grid;gap:6px;background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--ink);align-content:start}
+.tier>div.t2{border-top-color:var(--dep)} .tier>div.t3{border-top-color:var(--psy)}
+
+body.quiz .ans{filter:blur(6px);cursor:pointer;user-select:none;transition:filter .15s}
+body.quiz .ans.shown{filter:none;user-select:auto}
+@media (prefers-reduced-motion:reduce){body.quiz .ans{transition:none}}
+
+ol.refs{display:grid;gap:6px;padding-left:1.6em;font-size:.86rem}
+ol.refs li{margin:0}
+footer .wrap{padding-block:20px 40px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <span class="label">Scheda di ripasso · geriatria e medicina interna</span>
+    <h1>Delirium, demenze, psicosi</h1>
+    <p class="lede">Percorso a passi per il paziente anziano "confuso", agitato o con allucinazioni: cosa fare subito in acuto, come distinguere i tre quadri, quali esami chiedere e come rivalutare in fase sub-acuta. Con <b>Modalità ripasso</b> le risposte vengono oscurate.</p>
+  </div>
+</header>
+
+<nav class="chips" aria-label="Sezioni">
+  <div class="wrap">
+    <a href="#percorso">Percorso</a>
+    <a href="#confronto">Confronto</a>
+    <a href="#delirium">Delirium</a>
+    <a href="#demenze">Demenze</a>
+    <a href="#rapide">Rapidamente progressive</a>
+    <a href="#psicosi">Psicosi</a>
+    <a href="#strumenti">Strumenti</a>
+    <a href="#fonti">Fonti</a>
+    <button class="toggle" id="quizToggle" type="button" aria-pressed="false">Modalità ripasso</button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- PERCORSO -->
+<section id="percorso">
+  <div class="sec-head"><span class="label">Sempre nello stesso ordine</span><h2>Percorso a passi</h2>
+    <p class="muted small">La domanda chiave non è "che diagnosi ha?" ma "<b>cosa è cambiato rispetto al solito, e in quanto tempo?</b>". Senza un informatore (familiare, badante, infermiere, MMG) il percorso non si può fare.</p></div>
+
+  <div class="setting">
+    <div class="ac"><b>Setting acuto</b><span class="small">Pronto soccorso, reparto, post-operatorio, RSA con cambiamento improvviso. Priorità: escludere l'emergenza e il delirium, cercare la causa, proteggere il paziente.</span></div>
+    <div class="sa"><b>Setting sub-acuto</b><span class="small">Ambulatorio, CDCD, rivalutazione dopo la dimissione. Priorità: confermare il deterioramento, escludere cause reversibili, definire il sottotipo, pianificare cure e supporti.</span></div>
+  </div>
+
+  <div class="flow" aria-label="Percorso diagnostico">
+    <div class="node urgent"><span class="label">Passo 0 · solo in acuto</span><span class="q">Escludere l'emergenza (prima di qualsiasi test cognitivo)</span>
+      <ul class="ans">
+        <li><b>Glicemia capillare</b>, SpO₂, PA, FC, temperatura, frequenza respiratoria.</li>
+        <li>Segni neurologici focali o esordio brusco → percorso ictus.</li>
+        <li>Caduta o trauma cranico in terapia anticoagulante → TC encefalo.</li>
+        <li>Febbre con cefalea o rigidità nucale → emocolture, terapia empirica, rachicentesi.</li>
+        <li>Crisi epilettiche o fluttuazioni inspiegate della coscienza → EEG (stato di male non convulsivo).</li>
+        <li>Alcol, malnutrizione, vomito protratto → <b>tiamina ev prima del glucosio</b> (Wernicke) [16].</li>
+        <li>Astinenza da alcol o benzodiazepine; intossicazione da farmaci.</li>
+        <li>Globo vescicale, fecaloma, dolore non trattato.</li>
+      </ul></div>
+    <div class="arrow"></div>
+
+    <div class="node"><span class="label">Passo 1 · esordio e decorso</span><span class="q">Da quanto è cambiato? Il quadro fluttua?</span></div>
+    <div class="arrow"></div>
+    <div class="branches">
+      <div class="leaf del"><span class="tag">Ore – giorni, fluttuante</span><span class="small ans"><b>Delirium fino a prova contraria</b>, anche se il paziente ha già una demenza (la demenza è il principale fattore predisponente) [2].</span></div>
+      <div class="leaf dep"><span class="tag">Settimane – pochi mesi</span><span class="small ans">Delirium sub-acuto o protratto, <b>demenza rapidamente progressiva</b>, depressione, lesione espansiva, ematoma subdurale cronico.</span></div>
+      <div class="leaf dem"><span class="tag">Mesi – anni, graduale</span><span class="small ans">Demenza o MCI; depressione; psicosi primaria tardiva.</span></div>
+    </div>
+
+    <div class="node"><span class="label">Passo 2 · attenzione e vigilanza</span><span class="q">4AT (meno di 2 minuti, senza addestramento)</span><span class="small muted">In terapia intensiva: RASS + CAM-ICU [8][9].</span></div>
+    <div class="arrow"></div>
+    <div class="branches two">
+      <div class="leaf del"><span class="tag">4AT ≥ 4 · attenzione o vigilanza alterate</span><span class="small ans">Probabile <b>delirium</b> (± deterioramento cognitivo). Confermare con i criteri DSM-5-TR e cercare la causa → sezione Delirium [5][6].</span></div>
+      <div class="leaf go"><span class="tag">4AT 0–3 · attenzione e vigilanza conservate</span><span class="small ans">1–3: possibile deterioramento cognitivo senza delirium. Proseguire al passo 3.</span></div>
+    </div>
+
+    <div class="node"><span class="label">Passo 3 · contenuto del pensiero e umore</span><span class="q">Ci sono deliri o allucinazioni? Umore depresso?</span></div>
+    <div class="arrow"></div>
+    <div class="branches">
+      <div class="leaf psy"><span class="tag">Deliri o allucinazioni</span><span class="small ans">Prima escludere psicosi <b>secondaria</b> (delirium, farmaci, demenza a corpi di Lewy, Parkinson, cause mediche) → sezione Psicosi [30].</span></div>
+      <div class="leaf dep"><span class="tag">Umore depresso, apatia, lamentela soggettiva</span><span class="small ans">GDS-15 [34]; depressione con deficit cognitivi. Trattare la depressione e <b>rivalutare la cognitività</b> nel tempo.</span></div>
+      <div class="leaf dem"><span class="tag">Deficit cognitivi isolati</span><span class="small ans">MoCA o MMSE + autonomia (ADL, IADL) + informatore → MCI o demenza → sezione Demenze [17][19].</span></div>
+    </div>
+
+    <div class="node"><span class="label">Passo 4 · sub-acuto</span><span class="q">Rivalutare a distanza dalla fase acuta</span>
+      <ul class="small ans">
+        <li><b>Non diagnosticare una demenza durante un delirium</b>: rivalutare la cognitività dopo la risoluzione (settimane).</li>
+        <li>Il delirium può risolversi in modo incompleto e si associa a un rischio molto più alto di demenza successiva [15].</li>
+        <li>Invio al CDCD (Centro per i Disturbi Cognitivi e Demenze) per conferma diagnostica, sottotipo e piano di cura [18].</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- CONFRONTO -->
+<section id="confronto">
+  <div class="sec-head"><span class="label">Diagnosi differenziale al letto del paziente</span><h2>Confronto rapido</h2></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th></th><th class="del">Delirium</th><th class="dem">Malattia di Alzheimer</th><th class="dem">Demenza a corpi di Lewy</th><th class="dep">Depressione</th><th class="psy">Psicosi primaria tardiva</th></tr></thead>
+      <tbody class="ans">
+        <tr><td class="sc">Esordio</td><td>Acuto (ore – giorni)</td><td>Insidioso</td><td>Insidioso</td><td>Sub-acuto (settimane)</td><td>Graduale</td></tr>
+        <tr><td class="sc">Decorso</td><td>Fluttuante, peggio di sera e di notte</td><td>Lentamente progressivo</td><td>Progressivo con <b>fluttuazioni marcate</b></td><td>Episodico</td><td>Cronico</td></tr>
+        <tr><td class="sc">Attenzione</td><td><b>Gravemente compromessa</b></td><td>Conservata nelle fasi iniziali</td><td>Compromessa precocemente</td><td>Ridotta, scarso impegno nei test</td><td>Conservata</td></tr>
+        <tr><td class="sc">Vigilanza</td><td>Alterata (iper- o ipo-)</td><td>Normale</td><td>Fluttuante (sonnolenza diurna)</td><td>Normale</td><td>Normale</td></tr>
+        <tr><td class="sc">Memoria</td><td>Compromessa</td><td><b>Episodica, precoce</b></td><td>Relativamente conservata all'inizio; visuospaziale ed esecutiva compromesse</td><td>Lamentela soggettiva maggiore del deficit oggettivo</td><td>Relativamente conservata</td></tr>
+        <tr><td class="sc">Allucinazioni</td><td>Frequenti, visive</td><td>Rare nelle fasi iniziali</td><td><b>Visive, ben strutturate, precoci</b></td><td>Solo nella forma psicotica (deliri di colpa, rovina)</td><td>Uditive; deliri persecutori</td></tr>
+        <tr><td class="sc">Altri indizi</td><td>Causa medica o farmacologica identificabile</td><td>Anosognosia</td><td>Parkinsonismo, disturbo comportamentale del sonno REM, <b>ipersensibilità ai neurolettici</b></td><td>Anedonia, risposte "non so"</td><td>Deficit sensoriali, isolamento</td></tr>
+        <tr><td class="sc">Reversibilità</td><td>Spesso reversibile (non sempre completa)</td><td>No</td><td>No</td><td>Sì, con terapia</td><td>Parziale con terapia</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cite">Sintesi da [2][3][21][31]. I quadri si sovrappongono spesso: il delirium sovrapposto a demenza è la norma in ospedale, non l'eccezione.</p>
+</section>
+
+<!-- DELIRIUM -->
+<section id="delirium">
+  <div class="sec-head"><span class="sym del">Emergenza medica</span><h2>Delirium</h2>
+    <p class="muted small">Si associa a mortalità quasi doppia, istituzionalizzazione e demenza successiva [15]. La forma <b>ipoattiva</b> (paziente sonnolento, rallentato, "tranquillo") è la più frequente nell'anziano ed è quella che sfugge più spesso [4].</p></div>
+
+  <div class="grid2">
+    <div class="card"><span class="label">Criteri DSM-5-TR [1]</span>
+      <ol class="small ans">
+        <li>Disturbo dell'<b>attenzione</b> e della consapevolezza.</li>
+        <li>Si sviluppa in breve tempo, rappresenta un cambiamento rispetto al basale e <b>fluttua</b> nella giornata.</li>
+        <li>Un ulteriore disturbo cognitivo (memoria, orientamento, linguaggio, percezione).</li>
+        <li>Non meglio spiegato da un disturbo neurocognitivo preesistente; non in contesto di coma.</li>
+        <li>Evidenza che sia conseguenza di una condizione medica, intossicazione, astinenza o farmaco.</li>
+      </ol></div>
+    <div class="card"><span class="label">Fattori predisponenti × precipitanti [10]</span>
+      <p class="small ans">Più il paziente è vulnerabile, più basta un fattore lieve.</p>
+      <div class="grid2" style="gap:10px">
+        <div class="small ans"><b>Predisponenti</b><ul><li>Demenza o deterioramento cognitivo</li><li>Età avanzata, fragilità</li><li>Deficit visivo o uditivo</li><li>Comorbidità gravi</li><li>Alcol, depressione</li></ul></div>
+        <div class="small ans"><b>Precipitanti</b><ul><li>Contenzione fisica</li><li>Malnutrizione</li><li>&gt; 3 farmaci aggiunti</li><li>Catetere vescicale</li><li>Evento iatrogeno</li><li>Infezioni, chirurgia, dolore, disidratazione</li></ul></div>
+      </div></div>
+  </div>
+
+  <div class="card"><span class="label">Ricerca della causa: esami a livelli [3][4]</span>
+    <div class="tier">
+      <div><b>Sempre</b><ul class="small ans">
+        <li><b>Revisione dei farmaci</b>: anticolinergici, benzodiazepine, oppioidi, corticosteroidi, antistaminici, dopaminergici, antiepilettici; sospensioni brusche</li>
+        <li>Parametri vitali, glicemia, SpO₂ (EGA se sospetta ipercapnia)</li>
+        <li>Emocromo, Na, K, Ca, Mg, creatinina, funzione epatica, PCR</li>
+        <li>ECG</li>
+        <li>Globo vescicale (ecografia), alvo, dolore, idratazione</li>
+      </ul></div>
+      <div class="t2"><b>Se indicato dalla clinica</b><ul class="small ans">
+        <li>Emocolture, radiografia del torace</li>
+        <li>Esame urine e urinocoltura <b>solo con sintomi urinari o segni sistemici</b>: la batteriuria asintomatica non spiega il delirium e non va trattata</li>
+        <li>TSH, vitamina B12, ammoniemia (epatopatia, valproato), CK</li>
+        <li>Livelli di digossina, litio, antiepilettici; screening tossicologico</li>
+        <li>Troponina se sospetto evento coronarico</li>
+      </ul></div>
+      <div class="t3"><b>Mirati</b><ul class="small ans">
+        <li><b>TC encefalo</b>: segni focali, trauma, anticoagulanti, cefalea, nessuna altra causa trovata</li>
+        <li><b>EEG</b>: sospetto stato di male non convulsivo</li>
+        <li><b>Rachicentesi</b>: febbre con meningismo o sospetta encefalite</li>
+        <li>RM encefalo se quadro atipico o persistente</li>
+      </ul></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><span class="label">Gestione</span>
+      <ul class="small ans">
+        <li><b>Trattare la causa</b>: è l'unica terapia del delirium.</li>
+        <li><b>Misure non farmacologiche</b> (modello HELP): riorientamento, occhiali e apparecchi acustici, mobilizzazione precoce, igiene del sonno, idratazione e nutrizione, evitare farmaci inappropriati. Nel trial originale hanno ridotto l'incidenza dal 15,0% al 9,9% [11].</li>
+        <li>Evitare <b>contenzione fisica</b> e cateteri non necessari: sono fattori precipitanti [10].</li>
+        <li>Coinvolgere i familiari: presenza, oggetti familiari, orologio e calendario visibili.</li>
+      </ul></div>
+    <div class="card"><span class="label">Farmaci: cosa dice l'evidenza</span>
+      <ul class="small ans">
+        <li>Gli antipsicotici <b>non trattano il delirium</b> e non ne riducono la durata: nessun beneficio di aloperidolo o ziprasidone in terapia intensiva (MIND-USA) [12]; nel trial AID-ICU l'aloperidolo non ha aumentato i giorni vivi fuori dall'ospedale [13].</li>
+        <li><b>Aloperidolo</b> a dose minima e per pochi giorni solo se il paziente è molto angosciato o pericoloso per sé o per gli altri, dopo le misure non farmacologiche; attenzione al QT [14].</li>
+        <li><b>Evitare gli antipsicotici</b> nella demenza a corpi di Lewy e nel Parkinson (rischio di reazioni gravi) [21].</li>
+        <li><b>Benzodiazepine</b>: solo per astinenza da alcol o da benzodiazepine; altrimenti peggiorano il delirium [3].</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- DEMENZE -->
+<section id="demenze">
+  <div class="sec-head"><span class="sym dem">Setting sub-acuto</span><h2>Demenze</h2>
+    <p class="muted small">Quattro passi: confermare il deterioramento → escludere cause reversibili → definire il sottotipo → pianificare. Riferimento italiano: linea guida ISS/SNLG su demenza e MCI, adattamento di NICE NG97 [17][18].</p></div>
+
+  <div class="grid2">
+    <div class="card"><span class="label">1 · Confermare il deterioramento</span>
+      <ul class="small ans">
+        <li><b>Test cognitivo</b>: MoCA (&lt; 26 su 30 suggerisce deficit; più sensibile del MMSE per MCI e funzioni esecutive) [19]; MMSE [35]; in medicina generale GPCog o Mini-Cog [18]. Correggere sempre per età e scolarità.</li>
+        <li><b>Autonomia</b>: ADL (cura di sé) e IADL (telefono, farmaci, denaro, trasporti). Demenza = deficit cognitivo che compromette l'autonomia; MCI = autonomia conservata.</li>
+        <li><b>Informatore</b>: storia del cambiamento nel tempo.</li>
+        <li>Un test nella norma <b>non esclude</b> la demenza se la storia è suggestiva [17].</li>
+      </ul></div>
+    <div class="card"><span class="label">2 · Escludere cause reversibili [17]</span>
+      <ul class="small ans">
+        <li><b>Esami</b>: emocromo, VES o PCR, elettroliti, calcio, funzione renale ed epatica, HbA1c, TSH, vitamina B12 e folati.</li>
+        <li>Sierologia per sifilide e HIV <b>solo se</b> sospetto clinico.</li>
+        <li><b>Neuroimaging strutturale</b> (RM preferibile, TC se non disponibile): ematoma subdurale, tumori, idrocefalo normoteso, lesioni vascolari; orienta anche il sottotipo. Chiedere la refertazione con scale (atrofia temporale mesiale di Scheltens, Fazekas) [18].</li>
+        <li>Depressione (GDS), farmaci anticolinergici e sedativi, deficit sensoriali, apnee notturne.</li>
+      </ul></div>
+  </div>
+
+  <div class="card"><span class="label">3 · Definire il sottotipo</span>
+    <div class="tbl-wrap" style="border:0">
+      <table>
+        <thead><tr><th>Sottotipo</th><th>Indizi clinici</th><th>Esami che aiutano</th></tr></thead>
+        <tbody class="ans">
+          <tr><td class="sc">Malattia di Alzheimer</td><td>Deficit di memoria episodica (non migliora con gli indizi), poi linguaggio, prassie, orientamento; anosognosia. Varianti atipiche: posteriore (visuospaziale), logopenica, frontale [20]</td><td>RM: atrofia ippocampale. Liquor: Aβ42/40 ridotto, p-tau aumentata; PET amiloide; FDG-PET temporoparietale</td></tr>
+          <tr><td class="sc">Demenza a corpi di Lewy</td><td>Caratteristiche cardine: <b>fluttuazioni</b> cognitive, <b>allucinazioni visive</b> ricorrenti, <b>disturbo comportamentale del sonno REM</b>, parkinsonismo. Ipersensibilità grave ai neurolettici [21]</td><td>Ridotta captazione del trasportatore della dopamina (DaTscan), scintigrafia miocardica MIBG alterata, polisonnografia con sonno REM senza atonia [21]</td></tr>
+          <tr><td class="sc">Demenza nel Parkinson</td><td>Demenza comparsa in una malattia di Parkinson già nota da almeno 1 anno ("regola dell'anno"; se prima o insieme → corpi di Lewy) [21]</td><td>Clinica</td></tr>
+          <tr><td class="sc">Demenza vascolare</td><td>Esordio legato a ictus o progressione "a gradini"; rallentamento, deficit esecutivi più che di memoria; segni focali, disturbi della marcia, incontinenza precoce [24]</td><td>RM: infarti, lesioni della sostanza bianca (Fazekas), microsanguinamenti</td></tr>
+          <tr><td class="sc">Frontotemporale, variante comportamentale</td><td>Esordio spesso &lt; 65 anni. Almeno 3 di 6: disinibizione, apatia, perdita di empatia, comportamenti compulsivi, iperoralità, profilo disesecutivo con memoria e abilità visuospaziali relativamente risparmiate [22]</td><td>RM o FDG-PET: atrofia o ipometabolismo frontale e/o temporale anteriore</td></tr>
+          <tr><td class="sc">Afasie primarie progressive</td><td>Il linguaggio è il deficit principale e iniziale: varianti non fluente, semantica, logopenica [23]</td><td>RM, FDG-PET; valutazione logopedica</td></tr>
+          <tr><td class="sc">Idrocefalo normoteso</td><td>Disturbo della <b>marcia</b> (passi corti, piedi "incollati"), poi urgenza o incontinenza urinaria, rallentamento cognitivo. Potenzialmente trattabile [25]</td><td>RM o TC: ventricolomegalia (indice di Evans &gt; 0,3), solchi alti stretti; tap test liquorale</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><span class="label">4 · Disturbi del comportamento (BPSD)</span>
+      <ul class="small ans">
+        <li>Prima cercare cause trattabili: dolore, stipsi, ritenzione, infezione, farmaci, ambiente, bisogni non espressi.</li>
+        <li>Interventi non farmacologici come prima linea [17].</li>
+        <li>Antipsicotici solo se rischio di danno o grave sofferenza, alla dose minima, per il tempo più breve, con rivalutazione almeno ogni 6 settimane [17].</li>
+        <li>Negli anziani con demenza gli antipsicotici atipici aumentano la mortalità (OR 1,54 in meta-analisi di trial controllati) [29].</li>
+      </ul></div>
+    <div class="geri">
+      <span class="label">Rilevanza geriatrica</span>
+      <ul class="small">
+        <li>Ridurre il <b>carico anticolinergico</b> prima di attribuire il declino alla malattia (vedi la risposta sui farmaci anticolinergici).</li>
+        <li>Verificare vista e udito prima dei test: i deficit sensoriali abbassano i punteggi e favoriscono delirium e allucinazioni.</li>
+        <li>Diagnosi e prescrizione dei farmaci specifici passano dal CDCD [18].</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- RAPIDAMENTE PROGRESSIVE -->
+<section id="rapide">
+  <div class="sec-head"><span class="sym del">Settimane – pochi mesi</span><h2>Demenze rapidamente progressive</h2>
+    <p class="muted small">Declino fino alla demenza in meno di 1–2 anni, spesso in settimane o mesi. Molte cause sono <b>trattabili</b>: vanno cercate prima di pensare a una malattia da prioni [27].</p></div>
+  <div class="grid2">
+    <div class="tbl-wrap">
+      <table style="min-width:460px">
+        <thead><tr><th>Categoria</th><th>Esempi e indizi</th></tr></thead>
+        <tbody class="ans">
+          <tr><td class="sc">Autoimmune</td><td>Encefaliti autoimmuni (es. anti-LGI1: crisi distoniche facio-brachiali, <b>iponatriemia</b>); paraneoplastiche [28]</td></tr>
+          <tr><td class="sc">Prionica</td><td>Malattia di Creutzfeldt-Jakob: mioclono, atassia, disturbi visivi, mutismo acinetico [26]</td></tr>
+          <tr><td class="sc">Infettiva</td><td>Encefalite erpetica, HIV, neurosifilide</td></tr>
+          <tr><td class="sc">Neoplastica</td><td>Linfoma cerebrale primitivo, metastasi, carcinomatosi meningea</td></tr>
+          <tr><td class="sc">Tossico-metabolica</td><td>Wernicke, deficit di B12, encefalopatia epatica o uremica, litio, ipo/ipertiroidismo</td></tr>
+          <tr><td class="sc">Vascolare</td><td>Infarti multipli, angiopatia amiloide infiammatoria, fistola artero-venosa durale</td></tr>
+          <tr><td class="sc">Neurodegenerativa</td><td>Presentazioni rapide di Alzheimer, corpi di Lewy, frontotemporale</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card"><span class="label">Esami [26][27][28]</span>
+      <ul class="small ans">
+        <li><b>RM encefalo con diffusione (DWI)</b>: nella malattia di Creutzfeldt-Jakob iperintensità corticale "a nastro" e dei gangli della base.</li>
+        <li><b>EEG</b>: crisi, stato di male non convulsivo, complessi periodici.</li>
+        <li><b>Liquor</b>: cellule, proteine, bande oligoclonali, RT-QuIC (prioni), anticorpi neuronali.</li>
+        <li>Sangue: anticorpi anti-neurone, screening paraneoplastico, B12, TSH, ammoniemia, sierologie.</li>
+        <li>Invio rapido a un centro neurologico di riferimento.</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- PSICOSI -->
+<section id="psicosi">
+  <div class="sec-head"><span class="sym psy">Prima secondaria, poi primaria</span><h2>Psicosi nell'anziano</h2>
+    <p class="muted small">Una psicosi che compare per la prima volta in età avanzata è <b>secondaria fino a prova contraria</b> [30].</p></div>
+  <div class="alert"><strong>Campanelli d'allarme di psicosi secondaria [30]</strong>
+    <span class="small ans">Esordio tardivo senza storia psichiatrica · allucinazioni <b>visive, olfattive o tattili</b> · alterazione di vigilanza o attenzione · deficit cognitivi · segni neurologici · parametri vitali alterati · evoluzione rapida · nuovi farmaci o sostanze.</span></div>
+
+  <div class="grid2">
+    <div class="side psy">
+      <div class="sh"><h3>Cause secondarie</h3><span class="mono">da cercare per prime</span></div>
+      <div class="sb">
+        <div class="small ans"><b>Delirium</b>: la causa più frequente di allucinazioni in ospedale.</div>
+        <div class="small ans"><b>Neurodegenerative</b>: corpi di Lewy (allucinazioni visive precoci); Parkinson (spesso legata ai dopaminergici); Alzheimer (deliri di furto, di misidentificazione, "persone in casa") [21][33].</div>
+        <div class="small ans"><b>Farmaci</b>: levodopa, dopamino-agonisti, amantadina, anticolinergici, corticosteroidi, oppioidi, alcuni antiepilettici; astinenza da alcol o benzodiazepine [30].</div>
+        <div class="small ans"><b>Metaboliche ed endocrine</b>: ipo/ipertiroidismo, ipercalcemia, iponatriemia, ipoglicemia, deficit di B12 [30].</div>
+        <div class="small ans"><b>Neurologiche</b>: ictus, tumori, epilessia del lobo temporale, encefaliti (infettive e autoimmuni) [28][30].</div>
+        <div class="small ans"><b>Sensoriali</b>: sindrome di Charles Bonnet, allucinazioni visive complesse in chi ha un grave calo visivo, con consapevolezza conservata che non sono reali [32].</div>
+      </div>
+    </div>
+    <div class="side dem">
+      <div class="sh"><h3>Cause primarie</h3><span class="mono">dopo aver escluso le secondarie</span></div>
+      <div class="sb">
+        <div class="small ans"><b>Psicosi schizofreniforme a esordio molto tardivo</b> (dopo i 60 anni): deliri persecutori e "di partizione" (persone o cose che attraversano muri e porte), allucinazioni uditive; più frequente nelle donne e in chi ha deficit sensoriali; pochi sintomi negativi [31].</div>
+        <div class="small ans"><b>Disturbo delirante</b>: deliri sistematizzati con funzionamento per il resto conservato.</div>
+        <div class="small ans"><b>Depressione psicotica</b>: deliri congrui all'umore (colpa, rovina, malattia, nichilismo).</div>
+        <div class="small ans"><b>Disturbo bipolare</b>, a volte con primo episodio maniacale tardivo che impone di cercare una causa organica.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><span class="label">Esami nel primo episodio tardivo</span>
+      <ul class="small ans">
+        <li>Esami del livello "sempre" del delirium + TSH, B12, calcio, glicemia, sodio.</li>
+        <li>Revisione completa dei farmaci, compresi quelli da banco e gli integratori.</li>
+        <li>Valutazione cognitiva (MoCA) e neurologica; vista e udito.</li>
+        <li>RM encefalo; EEG se sospetto di crisi; sierologie e anticorpi se quadro atipico [28][30].</li>
+      </ul></div>
+    <div class="card"><span class="label">Trattamento: principi</span>
+      <ul class="small ans">
+        <li>Trattare la causa; ridurre o sospendere il farmaco responsabile (nel Parkinson, con il neurologo).</li>
+        <li>Correggere i deficit sensoriali; interventi ambientali.</li>
+        <li>Antipsicotici alla dose minima efficace e per il tempo più breve; in demenza aumentano la mortalità [29].</li>
+        <li><b>Corpi di Lewy e Parkinson</b>: evitare gli antipsicotici tipici; se indispensabili, quetiapina a basse dosi o clozapina. Gli inibitori della colinesterasi possono ridurre le allucinazioni nella demenza a corpi di Lewy [33].</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- STRUMENTI -->
+<section id="strumenti">
+  <div class="sec-head"><span class="label">Al letto del paziente</span><h2>Strumenti</h2></div>
+  <div class="grid2">
+    <div class="card"><span class="label">4AT [5][6]</span>
+      <div class="score">
+        <div class="h"><span>Item</span><span class="pt">Punti</span></div>
+        <div><span><b>1. Vigilanza</b>: normale (anche se brevemente sonnolento al risveglio) / chiaramente alterata</span><span class="pt">0 / 4</span></div>
+        <div><span><b>2. AMT4</b>: età, data di nascita, luogo, anno. Nessun errore / 1 errore / ≥ 2 errori o non testabile</span><span class="pt">0 / 1 / 2</span></div>
+        <div><span><b>3. Attenzione</b>: mesi dell'anno all'indietro. ≥ 7 corretti / inizia ma &lt; 7 o rifiuta / non testabile</span><span class="pt">0 / 1 / 2</span></div>
+        <div><span><b>4. Cambiamento acuto o decorso fluttuante</b> (nelle ultime 2 settimane, ancora presente nelle ultime 24 h): no / sì</span><span class="pt">0 / 4</span></div>
+      </div>
+      <div class="cut ans">
+        <div class="z0"><span class="r">0</span><span>Delirium o deterioramento grave improbabili</span></div>
+        <div class="z1"><span class="r">1–3</span><span>Possibile deterioramento cognitivo</span></div>
+        <div class="z2"><span class="r">≥ 4</span><span>Possibile delirium ± deterioramento</span></div>
+      </div>
+      <p class="cite">Validato in Italia su 234 anziani ricoverati [5]; meta-analisi: sensibilità 88%, specificità 88% [6].</p>
+    </div>
+    <div class="card"><span class="label">CAM, Confusion Assessment Method [7]</span>
+      <p class="small">Delirium se presenti <b>1 + 2</b> e almeno uno tra <b>3</b> e <b>4</b>:</p>
+      <ol class="small ans">
+        <li>Esordio acuto e decorso fluttuante</li>
+        <li>Inattenzione</li>
+        <li>Pensiero disorganizzato</li>
+        <li>Alterato livello di coscienza</li>
+      </ol>
+      <span class="label">Altri strumenti</span>
+      <ul class="small ans">
+        <li><b>RASS</b> (da −5 a +4): vigilanza e agitazione, prerequisito della CAM-ICU [9].</li>
+        <li><b>CAM-ICU</b>: versione per pazienti ventilati o non verbali [8].</li>
+        <li><b>GDS-15</b>: depressione nell'anziano; &gt; 5 suggerisce depressione [34].</li>
+        <li><b>MoCA</b> [19] e <b>MMSE</b> [35]: valutazione cognitiva globale.</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- FONTI -->
+<section id="fonti">
+  <div class="sec-head"><span class="label">Bibliografia</span><h2>Fonti</h2></div>
+  <ol class="refs">
+    <li>American Psychiatric Association. Diagnostic and Statistical Manual of Mental Disorders, 5th ed., Text Revision (DSM-5-TR). 2022. <a href="https://doi.org/10.1176/appi.books.9780890425787" target="_blank" rel="noopener">doi:10.1176/appi.books.9780890425787</a></li>
+    <li>Inouye SK, Westendorp RGJ, Saczynski JS. Delirium in elderly people. <i>Lancet</i> 2014;383:911–22. <a href="https://doi.org/10.1016/S0140-6736(13)60688-1" target="_blank" rel="noopener">doi:10.1016/S0140-6736(13)60688-1</a></li>
+    <li>Marcantonio ER. Delirium in hospitalized older adults. <i>N Engl J Med</i> 2017;377:1456–66. <a href="https://doi.org/10.1056/NEJMcp1605501" target="_blank" rel="noopener">doi:10.1056/NEJMcp1605501</a></li>
+    <li>Wilson JE, et al. Delirium. <i>Nat Rev Dis Primers</i> 2020;6:90. <a href="https://doi.org/10.1038/s41572-020-00223-4" target="_blank" rel="noopener">doi:10.1038/s41572-020-00223-4</a></li>
+    <li>Bellelli G, et al. Validation of the 4AT, a new instrument for rapid delirium screening: a study in 234 hospitalised older people. <i>Age Ageing</i> 2014;43:496–502. <a href="https://doi.org/10.1093/ageing/afu021" target="_blank" rel="noopener">doi:10.1093/ageing/afu021</a></li>
+    <li>Tieges Z, et al. Diagnostic accuracy of the 4AT for delirium detection in older adults: systematic review and meta-analysis. <i>Age Ageing</i> 2021;50:733–43. <a href="https://doi.org/10.1093/ageing/afaa224" target="_blank" rel="noopener">doi:10.1093/ageing/afaa224</a></li>
+    <li>Inouye SK, et al. Clarifying confusion: the confusion assessment method. <i>Ann Intern Med</i> 1990;113:941–8. <a href="https://doi.org/10.7326/0003-4819-113-12-941" target="_blank" rel="noopener">doi:10.7326/0003-4819-113-12-941</a></li>
+    <li>Ely EW, et al. Delirium in mechanically ventilated patients: validity and reliability of the CAM-ICU. <i>JAMA</i> 2001;286:2703–10. <a href="https://doi.org/10.1001/jama.286.21.2703" target="_blank" rel="noopener">doi:10.1001/jama.286.21.2703</a></li>
+    <li>Sessler CN, et al. The Richmond Agitation-Sedation Scale. <i>Am J Respir Crit Care Med</i> 2002;166:1338–44. <a href="https://doi.org/10.1164/rccm.2107138" target="_blank" rel="noopener">doi:10.1164/rccm.2107138</a></li>
+    <li>Inouye SK, Charpentier PA. Precipitating factors for delirium in hospitalized elderly persons. <i>JAMA</i> 1996;275:852–7. <a href="https://doi.org/10.1001/jama.1996.03530350034031" target="_blank" rel="noopener">doi:10.1001/jama.1996.03530350034031</a></li>
+    <li>Inouye SK, et al. A multicomponent intervention to prevent delirium in hospitalized older patients. <i>N Engl J Med</i> 1999;340:669–76. <a href="https://doi.org/10.1056/NEJM199903043400901" target="_blank" rel="noopener">doi:10.1056/NEJM199903043400901</a></li>
+    <li>Girard TD, et al. Haloperidol and ziprasidone for treatment of delirium in critical illness (MIND-USA). <i>N Engl J Med</i> 2018;379:2506–16. <a href="https://doi.org/10.1056/NEJMoa1808217" target="_blank" rel="noopener">doi:10.1056/NEJMoa1808217</a></li>
+    <li>Andersen-Ranberg NC, et al. Haloperidol for the treatment of delirium in ICU patients (AID-ICU). <i>N Engl J Med</i> 2022;387:2425–35. <a href="https://doi.org/10.1056/NEJMoa2211868" target="_blank" rel="noopener">doi:10.1056/NEJMoa2211868</a></li>
+    <li>NICE. Delirium: prevention, diagnosis and management in hospital and long-term care (CG103), ultimo aggiornamento. <a href="https://www.nice.org.uk/guidance/cg103" target="_blank" rel="noopener">NICE</a></li>
+    <li>Witlox J, et al. Delirium in elderly patients and the risk of postdischarge mortality, institutionalization, and dementia: a meta-analysis. <i>JAMA</i> 2010;304:443–51. <a href="https://doi.org/10.1001/jama.2010.1013" target="_blank" rel="noopener">doi:10.1001/jama.2010.1013</a></li>
+    <li>Galvin R, et al. EFNS guidelines for diagnosis, therapy and prevention of Wernicke encephalopathy. <i>Eur J Neurol</i> 2010;17:1408–18. <a href="https://doi.org/10.1111/j.1468-1331.2010.03153.x" target="_blank" rel="noopener">doi:10.1111/j.1468-1331.2010.03153.x</a></li>
+    <li>NICE. Dementia: assessment, management and support for people living with dementia and their carers (NG97). 2018. <a href="https://www.nice.org.uk/guidance/ng97" target="_blank" rel="noopener">NICE</a></li>
+    <li>Istituto Superiore di Sanità, SNLG. Linea guida "Diagnosi e trattamento di demenza e Mild Cognitive Impairment" (adattamento di NICE NG97). Sintesi e indagine tra i MMG: Italiano D, et al. <i>Rivista SIMG</i> 2024;31(5):34–41. <a href="https://simg.it/Riviste/rivista_simg/2024/05_2024/7.pdf" target="_blank" rel="noopener">SIMG</a></li>
+    <li>Nasreddine ZS, et al. The Montreal Cognitive Assessment, MoCA: a brief screening tool for mild cognitive impairment. <i>J Am Geriatr Soc</i> 2005;53:695–9. <a href="https://doi.org/10.1111/j.1532-5415.2005.53221.x" target="_blank" rel="noopener">doi:10.1111/j.1532-5415.2005.53221.x</a></li>
+    <li>McKhann GM, et al. The diagnosis of dementia due to Alzheimer's disease: NIA-AA recommendations. <i>Alzheimers Dement</i> 2011;7:263–9. <a href="https://doi.org/10.1016/j.jalz.2011.03.005" target="_blank" rel="noopener">doi:10.1016/j.jalz.2011.03.005</a></li>
+    <li>McKeith IG, et al. Diagnosis and management of dementia with Lewy bodies: fourth consensus report of the DLB Consortium. <i>Neurology</i> 2017;89:88–100. <a href="https://doi.org/10.1212/WNL.0000000000004058" target="_blank" rel="noopener">doi:10.1212/WNL.0000000000004058</a></li>
+    <li>Rascovsky K, et al. Sensitivity of revised diagnostic criteria for the behavioural variant of frontotemporal dementia. <i>Brain</i> 2011;134:2456–77. <a href="https://doi.org/10.1093/brain/awr179" target="_blank" rel="noopener">doi:10.1093/brain/awr179</a></li>
+    <li>Gorno-Tempini ML, et al. Classification of primary progressive aphasia and its variants. <i>Neurology</i> 2011;76:1006–14. <a href="https://doi.org/10.1212/WNL.0b013e31821103e6" target="_blank" rel="noopener">doi:10.1212/WNL.0b013e31821103e6</a></li>
+    <li>O'Brien JT, Thomas A. Vascular dementia. <i>Lancet</i> 2015;386:1698–706. <a href="https://doi.org/10.1016/S0140-6736(15)00463-8" target="_blank" rel="noopener">doi:10.1016/S0140-6736(15)00463-8</a></li>
+    <li>Nakajima M, et al. Guidelines for management of idiopathic normal pressure hydrocephalus (third edition). <i>Neurol Med Chir (Tokyo)</i> 2021;61:63–97. <a href="https://pubmed.ncbi.nlm.nih.gov/33455998/" target="_blank" rel="noopener">PMID 33455998</a></li>
+    <li>Hermann P, et al. Biomarkers and diagnostic guidelines for sporadic Creutzfeldt-Jakob disease. <i>Lancet Neurol</i> 2021;20:235–46. <a href="https://doi.org/10.1016/S1474-4422(20)30477-4" target="_blank" rel="noopener">doi:10.1016/S1474-4422(20)30477-4</a></li>
+    <li>Hermann P, Zerr I. Rapidly progressive dementias: aetiologies, diagnosis and management. <i>Nat Rev Neurol</i> 2022;18:363–76. <a href="https://doi.org/10.1038/s41582-022-00659-0" target="_blank" rel="noopener">doi:10.1038/s41582-022-00659-0</a></li>
+    <li>Graus F, et al. A clinical approach to diagnosis of autoimmune encephalitis. <i>Lancet Neurol</i> 2016;15:391–404. <a href="https://doi.org/10.1016/S1474-4422(15)00401-9" target="_blank" rel="noopener">doi:10.1016/S1474-4422(15)00401-9</a></li>
+    <li>Schneider LS, Dagerman KS, Insel P. Risk of death with atypical antipsychotic drug treatment for dementia: meta-analysis of randomized placebo-controlled trials. <i>JAMA</i> 2005;294:1934–43. <a href="https://doi.org/10.1001/jama.294.15.1934" target="_blank" rel="noopener">doi:10.1001/jama.294.15.1934</a></li>
+    <li>Keshavan MS, Kaneko Y. Secondary psychoses: an update. <i>World Psychiatry</i> 2013;12:4–15. <a href="https://pubmed.ncbi.nlm.nih.gov/23471787/" target="_blank" rel="noopener">PMID 23471787</a></li>
+    <li>Howard R, et al. Late-onset schizophrenia and very-late-onset schizophrenia-like psychosis: an international consensus. <i>Am J Psychiatry</i> 2000;157:172–8. <a href="https://doi.org/10.1176/appi.ajp.157.2.172" target="_blank" rel="noopener">doi:10.1176/appi.ajp.157.2.172</a></li>
+    <li>Teunisse RJ, et al. Visual hallucinations in psychologically normal people: Charles Bonnet's syndrome. <i>Lancet</i> 1996;347:794–7. <a href="https://doi.org/10.1016/S0140-6736(96)90869-7" target="_blank" rel="noopener">doi:10.1016/S0140-6736(96)90869-7</a></li>
+    <li>Taylor JP, et al. New evidence on the management of Lewy body dementia. <i>Lancet Neurol</i> 2020;19:157–69. <a href="https://doi.org/10.1016/S1474-4422(19)30153-X" target="_blank" rel="noopener">doi:10.1016/S1474-4422(19)30153-X</a></li>
+    <li>Yesavage JA, et al. Development and validation of a geriatric depression screening scale. <i>J Psychiatr Res</i> 1982;17:37–49. <a href="https://doi.org/10.1016/0022-3956(82)90033-4" target="_blank" rel="noopener">doi:10.1016/0022-3956(82)90033-4</a></li>
+    <li>Folstein MF, Folstein SE, McHugh PR. "Mini-mental state". <i>J Psychiatr Res</i> 1975;12:189–98. <a href="https://doi.org/10.1016/0022-3956(75)90026-6" target="_blank" rel="noopener">doi:10.1016/0022-3956(75)90026-6</a></li>
+  </ol>
+</section>
+
+</div>
+</main>
+
+<footer><div class="wrap">Scheda di studio, quinta della serie. Non sostituisce la valutazione specialistica (geriatra, neurologo, psichiatra, CDCD) né i protocolli locali.</div></footer>
+
+<script>
+(function(){
+var btn=document.getElementById('quizToggle');
+function set(on){
+  document.body.classList.toggle('quiz',on);
+  btn.setAttribute('aria-pressed',on?'true':'false');
+  btn.textContent=on?'Ripasso attivo':'Modalità ripasso';
+  if(!on){document.querySelectorAll('.ans.shown').forEach(function(e){e.classList.remove('shown');});}
+  try{localStorage.setItem('quiz',on?'1':'0');}catch(e){}
+}
+btn.addEventListener('click',function(){set(!document.body.classList.contains('quiz'));});
+document.addEventListener('click',function(ev){
+  if(!document.body.classList.contains('quiz'))return;
+  var a=ev.target.closest('.ans'); if(!a)return;
+  if(!a.classList.contains('shown')){ev.preventDefault();a.classList.add('shown');}
+});
+var saved=null; try{saved=localStorage.getItem('quiz');}catch(e){}
+if(saved==='1')set(true);
+})();
+</script>

@@ -1,0 +1,672 @@
+<title>Infezioni nell'anziano</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: quarta scheda della serie. Codice colore: categorie WHO AWaRe (Access verde, Watch ambra, Reserve rosso); matrice di spettro a pallini */
+:root{
+  --bg:#F3F6F6; --surface:#FFFFFF; --sunk:#E8EEEF; --ink:#13232A; --muted:#55666D; --line:#CFDADC;
+  --accent:#0E6673; --accent-soft:#D9ECEE;
+  --access:#2F7466; --access-soft:#DCEFEA;
+  --watch:#9A6410; --watch-soft:#F5EAD6;
+  --reserve:#B0432B; --reserve-soft:#F7E4DF;
+  --blue:#2B5FAE; --blue-soft:#E1EAF7;
+  --warn:#8A2B1E;
+  --f-display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --access:#71C3AF; --access-soft:#15322B; --watch:#E2AE5A; --watch-soft:#352914; --reserve:#EE9580; --reserve-soft:#3A221D;
+  --blue:#86AEEB; --blue-soft:#1A2A42; --warn:#F2A193; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1619; --surface:#152126; --sunk:#1B2A30; --ink:#E2EBED; --muted:#98AAB0; --line:#2B3C43;
+  --accent:#5BBCC8; --accent-soft:#16363C;
+  --access:#71C3AF; --access-soft:#15322B; --watch:#E2AE5A; --watch-soft:#352914; --reserve:#EE9580; --reserve-soft:#3A221D;
+  --blue:#86AEEB; --blue-soft:#1A2A42; --warn:#F2A193; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.9rem,4.5vw,2.8rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.7rem;font-weight:700}
+h3{font-size:1.1rem;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+ul{margin:0;padding-left:1.1em}
+li+li{margin-top:.15em}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:.9em}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.label{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;font-weight:600;color:var(--muted)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{padding-block:28px 20px;display:grid;gap:12px}
+.lede{max-width:70ch;color:var(--muted)}
+nav.chips{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+nav.chips .wrap{display:flex;gap:8px;align-items:center;overflow-x:auto;padding-block:10px;scrollbar-width:thin}
+nav.chips a{flex:none;text-decoration:none;color:var(--ink);font-family:var(--f-mono);font-size:.85rem;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg)}
+nav.chips a:hover{border-color:var(--accent);color:var(--accent)}
+.toggle{flex:none;margin-left:auto;font-size:.88rem;cursor:pointer;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:999px;padding:4px 12px;font-family:var(--f-body);font-weight:600}
+.toggle[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+
+main .wrap{display:grid;gap:56px;padding-block:32px 64px}
+section{display:grid;gap:20px;scroll-margin-top:64px}
+.sec-head{display:grid;gap:6px;border-top:3px solid var(--ink);padding-top:14px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:10px;min-width:0;align-content:start}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:640px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.num{white-space:nowrap}
+td.sc{font-weight:600;font-family:var(--f-display);width:22%}
+td.first b{color:var(--accent)}
+
+/* tag AWaRe */
+.aw{display:inline-block;font-family:var(--f-mono);font-size:.7rem;font-weight:600;border-radius:999px;padding:0 7px;border:1px solid;white-space:nowrap}
+.aw.A{color:var(--access);border-color:var(--access);background:var(--access-soft)}
+.aw.W{color:var(--watch);border-color:var(--watch);background:var(--watch-soft)}
+.aw.R{color:var(--reserve);border-color:var(--reserve);background:var(--reserve-soft)}
+
+/* ladder */
+.ladder{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;align-items:stretch}
+.rung{position:relative;background:var(--surface);border:1.5px solid var(--ink);border-radius:8px;padding:10px 12px;display:grid;gap:6px;align-content:start;margin-right:16px;min-width:0}
+.rung:last-child{margin-right:0}
+.rung:not(:last-child)::after{content:"";position:absolute;right:-15px;top:50%;border:7px solid transparent;border-left-color:var(--ink)}
+.rung h4{font-size:.92rem}
+.rung .aw{justify-self:start}
+.rung .plus{font-size:.82rem;color:var(--access)}
+.rung .minus{font-size:.82rem;color:var(--reserve)}
+.rung.r6{border-color:var(--reserve);background:var(--reserve-soft)}
+@media (max-width:900px){.ladder{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.rung{margin-right:0}.rung::after{display:none}}
+@media (max-width:480px){.ladder{grid-template-columns:1fr}}
+
+/* matrix */
+.matrix table{min-width:860px;font-size:.85rem}
+.matrix th.rot{text-align:center;font-size:.7rem;vertical-align:bottom;white-space:normal;min-width:64px}
+.matrix td{text-align:center;vertical-align:middle;padding:6px 6px}
+.matrix td.drug{text-align:left;white-space:nowrap;font-weight:600}
+.matrix tr.grp td{background:var(--sunk);text-align:left;font-family:var(--f-display);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.d{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--ink);vertical-align:middle}
+.d.s{background:var(--ink)}
+.d.p{background:linear-gradient(90deg,var(--ink) 50%,transparent 50%)}
+.d.n{border-color:var(--line);border-style:dashed}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.85rem;align-items:center}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+
+.alert{border-left:4px solid var(--warn);background:var(--reserve-soft);border-radius:0 8px 8px 0;padding:10px 14px;display:grid;gap:4px}
+.alert strong{color:var(--warn);font-family:var(--f-display)}
+.note{border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;padding:10px 14px;display:grid;gap:4px}
+.note strong{font-family:var(--f-display)}
+.geri{border:1.5px dashed var(--accent);background:var(--accent-soft);border-radius:10px;padding:14px 16px;display:grid;gap:8px}
+.geri .label{color:var(--accent)}
+.cite{font-size:.78rem;color:var(--muted)}
+.qs{counter-reset:q;display:grid;gap:10px;list-style:none;padding:0;margin:0}
+.qs li{counter-increment:q;display:grid;grid-template-columns:28px 1fr;gap:10px;margin:0}
+.qs li::before{content:counter(q);font-family:var(--f-mono);font-weight:600;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-size:.8rem}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.stat div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:2px}
+.stat .v{font-family:var(--f-mono);font-weight:600;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.stat .v.hi{color:var(--reserve)} .stat .v.mid{color:var(--watch)} .stat .v.lo{color:var(--access)}
+
+body.quiz .ans{filter:blur(6px);cursor:pointer;user-select:none;transition:filter .15s}
+body.quiz .ans.shown{filter:none;user-select:auto}
+@media (prefers-reduced-motion:reduce){body.quiz .ans{transition:none}}
+
+ol.refs{display:grid;gap:6px;padding-left:1.6em;font-size:.86rem}
+ol.refs li{margin:0}
+footer .wrap{padding-block:20px 40px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <span class="label">Scheda di ripasso · geriatria e medicina interna</span>
+    <h1>Infezioni nell'anziano</h1>
+    <p class="lede">Come scegliere l'antibiotico: principi, mappa dello spettro, terapia empirica per le infezioni più comuni (comunitarie e ospedaliere), durate brevi, multiresistenze e sicurezza nell'anziano. Dosi per adulto con funzione renale normale. Le scelte empiriche vanno sempre confrontate con l'antibiogramma locale e i protocolli del proprio ospedale. Con <b>Modalità ripasso</b> le risposte vengono oscurate.</p>
+  </div>
+</header>
+
+<nav class="chips" aria-label="Sezioni">
+  <div class="wrap">
+    <a href="#principi">Principi</a>
+    <a href="#spettro">Spettro</a>
+    <a href="#dosi">Dosi</a>
+    <a href="#polmoniti">Polmoniti</a>
+    <a href="#urinarie">Vie urinarie</a>
+    <a href="#cute">Cute</a>
+    <a href="#addome">Addome</a>
+    <a href="#cdiff">C. difficile</a>
+    <a href="#sepsi">Sepsi</a>
+    <a href="#mdr">Multiresistenti</a>
+    <a href="#durate">Durate</a>
+    <a href="#sicurezza">Sicurezza</a>
+    <a href="#fonti">Fonti</a>
+    <button class="toggle" id="quizToggle" type="button" aria-pressed="false">Modalità ripasso</button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- PRINCIPI -->
+<section id="principi">
+  <div class="sec-head"><span class="label">Prima di prescrivere</span><h2>Sei domande</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <ol class="qs small">
+        <li><span><b>È davvero un'infezione?</b> Batteriuria asintomatica, colonizzazione di ulcere e cateteri, febbre da farmaci o trombosi non vanno trattate con antibiotici [2].</span></li>
+        <li><span><b>Qual è la fonte?</b> Determina i batteri probabili, quindi l'antibiotico. "Sepsi a fonte ignota" è l'eccezione, non la regola.</span></li>
+        <li><span><b>Quanto è grave?</b> Sepsi o shock → antibiotico entro 1 ora, ampio spettro; quadro stabile → c'è tempo per colture e scelta mirata [27].</span></li>
+        <li><span><b>Dove è stata acquisita e c'è rischio di multiresistenti?</b> Antibiotici ev negli ultimi 90 giorni, ricovero recente, RSA, colonizzazione nota, dialisi [11][27].</span></li>
+        <li><span><b>Chi è il paziente?</b> Clearance della creatinina (Cockcroft-Gault), allergie vere, interazioni, QT, rischio di C. difficile [35].</span></li>
+        <li><span><b>Ho fatto le colture prima di iniziare?</b> Emocolture ×2 e campione dalla sede, senza ritardare l'antibiotico nello shock [27].</span></li>
+      </ol>
+    </div>
+    <div class="card">
+      <span class="label">A 48–72 ore: "time-out" antibiotico [27]</span>
+      <ul class="small">
+        <li><b>Rivaluta la diagnosi</b>: se non è infezione, sospendi.</li>
+        <li><b>De-escalation</b>: restringi lo spettro sulla base di colture e antibiogramma.</li>
+        <li><b>Passaggio da ev a orale</b> quando: clinicamente stabile, apiretico, si alimenta, assorbimento intestinale conservato, esiste un orale efficace. Ottima biodisponibilità orale: fluorochinoloni, cotrimossazolo, linezolid, doxiciclina, metronidazolo, clindamicina [14].</li>
+        <li><b>Data di fine</b> già scritta in cartella (vedi tabella Durate).</li>
+      </ul>
+      <div class="geri">
+        <span class="label">Presentazione nell'anziano [1]</span>
+        <p class="small">Spesso senza febbre: delirium, cadute, calo funzionale, inappetenza. Nelle strutture residenziali si considera febbre: singola temperatura orale &gt; 37,8 °C, oppure ripetute &gt; 37,2 °C (orale) o &gt; 37,5 °C (rettale), oppure aumento &gt; 1,1 °C rispetto al basale.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="label">Resistenze in Italia, dati AR-ISS 2024 (emocolture) [3]</span>
+    <div class="stat">
+      <div><span class="small muted">E. coli resistente a cefalosporine 3ª gen.</span><span class="v mid">27,7%</span></div>
+      <div><span class="small muted">E. coli resistente a fluorochinoloni</span><span class="v hi">34,5%</span></div>
+      <div><span class="small muted">K. pneumoniae resistente a cefalosporine 3ª gen.</span><span class="v hi">52,9%</span></div>
+      <div><span class="small muted">K. pneumoniae resistente a carbapenemi</span><span class="v hi">24,0%</span></div>
+      <div><span class="small muted">P. aeruginosa resistente a piperacillina-tazobactam</span><span class="v mid">20,4%</span></div>
+      <div><span class="small muted">S. aureus resistente a meticillina (MRSA)</span><span class="v mid">25,7%</span></div>
+      <div><span class="small muted">S. pneumoniae resistente a macrolidi</span><span class="v mid">27,4%</span></div>
+      <div><span class="small muted">E. faecium resistente a vancomicina</span><span class="v hi">34,9%</span></div>
+    </div>
+    <p class="cite">Medie nazionali: i dati del proprio ospedale e della propria regione possono essere molto diversi. Conseguenze pratiche: niente fluorochinoloni empirici per le infezioni da E. coli; niente macrolide da solo nella polmonite; nello shock con fattori di rischio, valutare un carbapenemico.</p>
+  </div>
+</section>
+
+<!-- SPETTRO -->
+<section id="spettro">
+  <div class="sec-head"><span class="label">Il cuore della scelta</span><h2>Mappa dello spettro</h2>
+    <p class="muted small">Ragionare a "scala": ogni gradino aggiunge batteri coperti. Si sale solo se il paziente o i fattori di rischio lo richiedono, e si scende appena arrivano le colture.</p></div>
+
+  <div class="ladder">
+    <div class="rung"><span class="aw A">Access</span><h4>Amoxicillina</h4><span class="plus">Streptococchi (pneumococco), Enterococcus faecalis, Listeria</span></div>
+    <div class="rung"><span class="aw A">Access</span><h4>+ clavulanato</h4><span class="plus">+ produttori di β-lattamasi: MSSA, H. influenzae, Moraxella, anaerobi, parte degli E. coli</span></div>
+    <div class="rung"><span class="aw W">Watch</span><h4>Ceftriaxone</h4><span class="plus">+ Enterobatteri non ESBL</span><span class="minus">− Enterococco, anaerobi</span></div>
+    <div class="rung"><span class="aw W">Watch</span><h4>Pip-tazo / cefepime</h4><span class="plus">+ Pseudomonas. Pip-tazo copre anche anaerobi ed E. faecalis</span></div>
+    <div class="rung"><span class="aw W">Watch</span><h4>Carbapenemi</h4><span class="plus">+ ESBL. Meropenem copre Pseudomonas</span><span class="minus">Ertapenem: no Pseudomonas, no Enterococco</span></div>
+    <div class="rung r6"><span class="aw R">Reserve</span><h4>Nuove molecole</h4><span class="plus">Enterobatteri resistenti ai carbapenemi, Pseudomonas multiresistente: solo con l'infettivologo</span></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <span class="label">Cosa aggiungere al β-lattamico, e quando</span>
+      <ul class="small ans">
+        <li><b>Atipici</b> (Legionella, Mycoplasma, Chlamydophila) → macrolide o doxiciclina. Nessun β-lattamico li copre.</li>
+        <li><b>MRSA</b> → vancomicina o linezolid. Nessun β-lattamico tra quelli comuni lo copre.</li>
+        <li><b>Anaerobi</b> → metronidazolo, solo se il β-lattamico non li copre già (ceftriaxone, cefepime).</li>
+        <li><b>Secondo anti-Gram-negativo</b> (amikacina) → solo shock settico con alto rischio di multiresistenti, poi sospendere [27].</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="label">I "buchi" da ricordare</span>
+      <ul class="small ans">
+        <li>Le <b>cefalosporine</b> non coprono mai l'Enterococco.</li>
+        <li><b>Ceftriaxone</b> ed <b>ertapenem</b> non coprono Pseudomonas.</li>
+        <li><b>Ertapenem</b> e meropenem non sono affidabili sull'Enterococco.</li>
+        <li><b>Nitrofurantoina e fosfomicina</b> orale funzionano solo nella vescica: mai per pielonefrite o batteriemia [14].</li>
+        <li><b>Vancomicina</b> è inferiore ai β-lattamici sul MSSA: se l'antibiogramma lo consente, passare a cefazolina o oxacillina [28].</li>
+        <li><b>Daptomicina</b> è inattivata dal surfattante: mai per polmonite.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card matrix">
+    <div class="legend">
+      <span><i class="d s"></i> copertura affidabile</span>
+      <span><i class="d p"></i> parziale o variabile (dipende dalle resistenze locali)</span>
+      <span><i class="d n"></i> non copre</span>
+      <span><span class="aw A">A</span> <span class="aw W">W</span> <span class="aw R">R</span> classificazione WHO AWaRe [5]</span>
+    </div>
+    <div class="tbl-wrap" style="border:0">
+      <table id="mx">
+        <thead><tr>
+          <th>Antibiotico</th><th class="rot">Strepto&shy;cocchi</th><th class="rot">MSSA</th><th class="rot">MRSA</th><th class="rot">E. faecalis</th><th class="rot">Entero&shy;batteri</th><th class="rot">ESBL</th><th class="rot">Pseudo&shy;monas</th><th class="rot">Anaerobi</th><th class="rot">Atipici</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="cite">Schema didattico semplificato, costruito su testi di riferimento e sulle linee guida citate [5][31][32]; "Enterobatteri" = E. coli, Klebsiella, Proteus non produttori di ESBL. Per gli Enterobatteri, la copertura reale dipende dall'antibiogramma: in Italia le resistenze di E. coli ad amoxicillina-clavulanato e fluorochinoloni superano il 20% [3][4].</p>
+  </div>
+</section>
+
+<!-- DOSI -->
+<section id="dosi">
+  <div class="sec-head"><span class="label">Adulto, CrCl &gt; 50 mL/min</span><h2>Dosi standard</h2>
+    <p class="muted small">Nell'anziano calcolare sempre la clearance con Cockcroft-Gault e verificare l'aggiustamento sulla scheda tecnica. Riferimenti per le dosi: linee guida delle singole sindromi [6][11][13][17][24][30][34].</p></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Antibiotico</th><th>Dose</th><th>Ridurre se IRC?</th><th>Nota per l'anziano</th></tr></thead>
+      <tbody>
+        <tr><td>Amoxicillina <span class="aw A">A</span></td><td class="num">1 g ogni 8 h os</td><td>Sì</td><td></td></tr>
+        <tr><td>Amoxicillina-clavulanato <span class="aw A">A</span></td><td class="num">875/125 mg ogni 8–12 h os · 1,2–2,2 g ogni 8 h ev</td><td>Sì</td><td>Diarrea, colestasi</td></tr>
+        <tr><td>Cefalexina <span class="aw A">A</span></td><td class="num">500 mg ogni 6 h os</td><td>Sì</td><td></td></tr>
+        <tr><td>Cefazolina <span class="aw A">A</span></td><td class="num">2 g ogni 8 h ev</td><td>Sì</td><td>Prima scelta per MSSA</td></tr>
+        <tr><td>Ceftriaxone <span class="aw W">W</span></td><td class="num">1–2 g ogni 24 h ev/im</td><td>No</td><td>Comodo: 1 somministrazione/die</td></tr>
+        <tr><td>Cefepime <span class="aw W">W</span></td><td class="num">2 g ogni 8 h ev</td><td>Sì</td><td><b>Neurotossicità</b> (encefalopatia, stato di male non convulsivo) se dose non ridotta in IRC [37]</td></tr>
+        <tr><td>Piperacillina-tazobactam <span class="aw W">W</span></td><td class="num">4,5 g ogni 6 h ev (infusione prolungata)</td><td>Sì</td><td>Carico di sodio</td></tr>
+        <tr><td>Ertapenem <span class="aw W">W</span></td><td class="num">1 g ogni 24 h ev</td><td>Sì</td><td>Convulsioni a dosi non corrette</td></tr>
+        <tr><td>Meropenem <span class="aw W">W</span></td><td class="num">1 g ogni 8 h ev (2 g ogni 8 h se grave)</td><td>Sì</td><td>Abbassa drasticamente i livelli di valproato</td></tr>
+        <tr><td>Azitromicina <span class="aw W">W</span></td><td class="num">500 mg ogni 24 h os/ev</td><td>No</td><td>QT</td></tr>
+        <tr><td>Claritromicina <span class="aw W">W</span></td><td class="num">500 mg ogni 12 h os/ev</td><td>Sì (CrCl &lt; 30)</td><td>Inibitore CYP3A4: statine, calcio-antagonisti, colchicina [35]</td></tr>
+        <tr><td>Doxiciclina <span class="aw A">A</span></td><td class="num">100 mg ogni 12 h os</td><td>No</td><td>Assumere in piedi con acqua (esofagite)</td></tr>
+        <tr><td>Levofloxacina <span class="aw W">W</span></td><td class="num">500 mg ogni 12–24 h o 750 mg/die os/ev</td><td>Sì</td><td>Vedi "Sicurezza" [36]</td></tr>
+        <tr><td>Cotrimossazolo <span class="aw A">A</span></td><td class="num">800/160 mg ogni 12 h os</td><td>Sì</td><td>Iperkaliemia con ACE-i/sartani/anti-MR; warfarin [35][40]</td></tr>
+        <tr><td>Nitrofurantoina <span class="aw A">A</span></td><td class="num">100 mg ogni 12 h os (macrocristalli)</td><td>Evitare se CrCl &lt; 30</td><td>Solo cistite [35]</td></tr>
+        <tr><td>Fosfomicina trometamolo <span class="aw W">W</span></td><td class="num">3 g os dose singola</td><td>—</td><td>Solo cistite</td></tr>
+        <tr><td>Metronidazolo <span class="aw A">A</span></td><td class="num">500 mg ogni 8 h os/ev</td><td>No</td><td>Aumenta l'INR con warfarin</td></tr>
+        <tr><td>Clindamicina <span class="aw A">A</span></td><td class="num">300–450 mg ogni 6–8 h os · 600–900 mg ogni 8 h ev</td><td>No</td><td>Alto rischio di C. difficile</td></tr>
+        <tr><td>Oxacillina / flucloxacillina</td><td class="num">2 g ogni 4–6 h ev</td><td>Solo IRC grave</td><td>MSSA grave</td></tr>
+        <tr><td>Vancomicina ev <span class="aw W">W</span></td><td class="num">carico 20–35 mg/kg, poi guidata da AUC 400–600 mg·h/L</td><td>Sì</td><td>Nefrotossicità: monitoraggio dei livelli [34]</td></tr>
+        <tr><td>Linezolid <span class="aw R">R</span></td><td class="num">600 mg ogni 12 h os/ev</td><td>No</td><td>Sindrome serotoninergica con SSRI; piastrinopenia oltre 14 giorni</td></tr>
+        <tr><td>Vancomicina os (C. difficile)</td><td class="num">125 mg ogni 6 h</td><td>No (non assorbita)</td><td></td></tr>
+        <tr><td>Fidaxomicina (C. difficile)</td><td class="num">200 mg ogni 12 h</td><td>No</td><td></td></tr>
+        <tr><td>Oseltamivir (influenza)</td><td class="num">75 mg ogni 12 h os</td><td>Sì (CrCl &lt; 60)</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- POLMONITI -->
+<section id="polmoniti">
+  <div class="sec-head"><span class="label">Comunitarie, ab ingestis, ospedaliere</span><h2>Polmoniti</h2></div>
+  <div class="grid2">
+    <div class="card"><span class="label">Gravità: CURB-65 [7]</span>
+      <p class="small"><b>C</b>onfusione · <b>U</b>rea &gt; 7 mmol/L (≈ 42 mg/dL) · <b>R</b>espiro ≥ 30/min · <b>B</b>lood pressure: PAS &lt; 90 o PAD ≤ 60 · età ≥ <b>65</b>.</p>
+      <p class="small ans">0–1 → gestione domiciliare · 2 → ricovero breve o stretta osservazione · ≥ 3 → grave, valutare terapia intensiva. Nell'anziano l'età vale già 1 punto: il punteggio va sempre integrato con il giudizio clinico e la fragilità.</p></div>
+    <div class="card"><span class="label">Esami [6]</span>
+      <ul class="small ans"><li>Radiografia o ecografia del torace.</li>
+      <li>Emocolture ed escreato: nella forma grave o se rischio di MRSA/Pseudomonas.</li>
+      <li>Antigeni urinari di pneumococco e Legionella nelle forme gravi.</li>
+      <li>Tampone per influenza e SARS-CoV-2 in stagione.</li>
+      <li>La procalcitonina non serve a decidere se iniziare l'antibiotico.</li></ul></div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Scenario</th><th>Prima scelta</th><th>Allergia grave a β-lattamici / alternativa</th><th>Durata</th></tr></thead>
+      <tbody class="ans">
+        <tr><td class="sc">CAP domiciliare, senza comorbidità</td><td class="first"><b>Amoxicillina</b> 1 g ×3 (o doxiciclina)</td><td>Doxiciclina</td><td>5 giorni</td></tr>
+        <tr><td class="sc">CAP domiciliare con comorbidità (BPCO, scompenso, diabete, IRC, epatopatia, neoplasia, alcol)</td><td class="first"><b>Amoxicillina-clavulanato</b> + macrolide o doxiciclina</td><td>Levofloxacina in monoterapia</td><td>5 giorni</td></tr>
+        <tr><td class="sc">CAP ricoverata, non grave</td><td class="first"><b>Ceftriaxone</b> 1–2 g/die (o amoxicillina-clavulanato ev) + macrolide</td><td>Levofloxacina</td><td>≥ 5 giorni; 3 giorni se stabile al 3° giorno [8]</td></tr>
+        <tr><td class="sc">CAP grave</td><td class="first"><b>Ceftriaxone</b> 2 g + <b>azitromicina</b></td><td>Verificare se l'allergia è reale (PEN-FAST); se confermata, levofloxacina, con l'infettivologo</td><td>5–7 giorni</td></tr>
+        <tr><td class="sc">+ MRSA o Pseudomonas solo se: isolati in precedenza dalle vie respiratorie, o ricovero con antibiotici ev negli ultimi 90 giorni</td><td class="first">Pseudomonas: <b>pip-tazo</b> o cefepime o meropenem · MRSA: <b>vancomicina</b> o linezolid</td><td>Colture e tampone nasale MRSA per poter sospendere</td><td>7 giorni</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cite">CAP: ATS/IDSA 2019 [6]. Monoterapia con macrolide sconsigliata dove la resistenza del pneumococco supera il 25% [6]: in Italia è il 27,4% [3]. Nel trial CAPE COD (CAP grave in terapia intensiva, esclusi shock settico e influenza) l'idrocortisone 200 mg/die ha ridotto la mortalità a 28 giorni dall'11,9% al 6,2% [9].</p>
+
+  <div class="grid2">
+    <div class="card"><span class="label">Polmonite ab ingestis [6][10]</span>
+      <ul class="small ans">
+        <li>Distinguere la <b>polmonite chimica</b> (inalazione di contenuto gastrico, infiltrato entro ore, spesso risolve in 24–48 h senza antibiotici) dalla <b>polmonite batterica</b>.</li>
+        <li>Terapia come una CAP (amoxicillina-clavulanato o ceftriaxone). <b>Non aggiungere copertura anaerobica di routine</b>, salvo ascesso polmonare o empiema.</li>
+        <li>Prevenzione nell'anziano: valutazione della deglutizione, postura, igiene orale, revisione di sedativi.</li>
+      </ul></div>
+    <div class="card"><span class="label">Polmonite ospedaliera (HAP, insorta ≥ 48 h dal ricovero) [11][12]</span>
+      <ul class="small ans">
+        <li><b>Basso rischio di multiresistenti e senza shock</b>: un solo farmaco. ERS: spettro stretto (ceftriaxone, ertapenem, levofloxacina). IDSA: pip-tazo o cefepime o levofloxacina.</li>
+        <li><b>Alto rischio</b> (shock, antibiotici ev negli ultimi 90 giorni, colonizzazione nota, reparto ad alta prevalenza di resistenze): β-lattamico antipseudomonas; + secondo anti-Gram-negativo (amikacina) se shock; + vancomicina o linezolid se rischio MRSA.</li>
+        <li>De-escalation sulle colture. Durata <b>7 giorni</b>.</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- URINARIE -->
+<section id="urinarie">
+  <div class="sec-head"><span class="label">L'errore più frequente in geriatria</span><h2>Vie urinarie</h2></div>
+  <div class="alert"><strong>Batteriuria asintomatica: non trattare [2]</strong>
+    <span class="small">Urinocoltura positiva senza sintomi urinari né segni sistemici non va trattata, nemmeno con piuria, catetere vescicale o diabete. Nell'anziano con <b>delirium o cadute</b> ma senza sintomi urinari, febbre o instabilità emodinamica: cercare altre cause e osservare, invece di dare l'antibiotico. Il trattamento non riduce le infezioni successive e favorisce resistenze e C. difficile. Eccezione principale: prima di procedure urologiche con sanguinamento della mucosa.</span></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Scenario</th><th>Prima scelta</th><th>Alternativa</th><th>Durata</th></tr></thead>
+      <tbody class="ans">
+        <tr><td class="sc">Cistite nella donna</td><td class="first"><b>Fosfomicina</b> 3 g dose singola o <b>nitrofurantoina</b> 100 mg ×2 (se CrCl ≥ 30)</td><td>Su urinocoltura. Cotrimossazolo solo se la resistenza locale è &lt; 20%: in Italia è il 25% negli E. coli urinari [4][13]</td><td>Fosfomicina 1 dose · nitrofurantoina 5 giorni</td></tr>
+        <tr><td class="sc">IVU nell'uomo senza febbre</td><td class="first">Guidata dall'<b>urinocoltura</b> (cotrimossazolo o fluorochinolone se sensibili)</td><td>—</td><td><b>7 giorni</b> (non inferiore a 14) [15]</td></tr>
+        <tr><td class="sc">Pielonefrite / IVU complicata, senza sepsi</td><td class="first"><b>Ceftriaxone</b> 1–2 g/die, poi orale secondo antibiogramma</td><td>Fluorochinolone solo se non usato negli ultimi 12 mesi e senza isolati resistenti recenti [14]</td><td><b>7 giorni</b> (5–7 se fluorochinolone) [14]</td></tr>
+        <tr><td class="sc">IVU con sepsi o shock</td><td class="first"><b>Pip-tazo</b>; <b>meropenem</b> se shock con rischio ESBL (colonizzazione nota, isolato ESBL nelle urine, antibiotici o ricoveri recenti)</td><td>Evitare farmaci a cui un isolato urinario recente era resistente</td><td>7 giorni anche se batteriemica [14][29]</td></tr>
+        <tr><td class="sc">Febbre con sospetta prostatite acuta</td><td class="first">Come IVU complicata, poi su antibiogramma</td><td>—</td><td>10–14 giorni (evidenze limitate) [14]</td></tr>
+        <tr><td class="sc">Paziente con catetere vescicale</td><td class="first">Come IVU complicata. <b>Sostituire il catetere</b> se in sede da &gt; 2 settimane, prima di raccogliere l'urinocoltura [16]</td><td>Non fare urinocolture di routine nei cateterizzati asintomatici</td><td>7 giorni se pronta risposta; 10–14 se risposta lenta [16]</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cite">Resistenze degli E. coli urinari in Italia, 2024 [4]: nitrofurantoina 1,3% · cefalosporine 3ª gen. 13–16% · ciprofloxacina 24,9% · cotrimossazolo 25,3% · amoxicillina-clavulanato 30,9%. Il 63% degli isolati proviene da pazienti ≥ 65 anni.</p>
+</section>
+
+<!-- CUTE -->
+<section id="cute">
+  <div class="sec-head"><span class="label">Cute, tessuti molli, piede diabetico</span><h2>Infezioni della cute</h2>
+    <p class="muted small">La cellulite non purulenta è quasi sempre da streptococchi β-emolitici; l'ascesso è da S. aureus [17].</p></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Scenario</th><th>Prima scelta</th><th>Allergia / alternativa</th><th>Durata</th></tr></thead>
+      <tbody class="ans">
+        <tr><td class="sc">Cellulite non purulenta, lieve</td><td class="first"><b>Cefalexina</b> 500 mg ×4 o amoxicillina-clavulanato</td><td>Clindamicina</td><td><b>5 giorni</b>, prolungare se non migliora [17]</td></tr>
+        <tr><td class="sc">Cellulite con segni sistemici</td><td class="first"><b>Cefazolina</b> 2 g ×3 ev</td><td>Clindamicina o vancomicina</td><td>5–10 giorni</td></tr>
+        <tr><td class="sc">Ascesso</td><td class="first"><b>Incisione e drenaggio</b>; antibiotico anti-MRSA (cotrimossazolo o doxiciclina) se segni sistemici o cellulite estesa</td><td>—</td><td>5–10 giorni</td></tr>
+        <tr><td class="sc">Fascite necrotizzante (dolore sproporzionato, bolle, crepitio, rapida progressione)</td><td class="first"><b>Chirurgia urgente</b> + vancomicina + pip-tazo (o meropenem) + clindamicina (blocca le tossine)</td><td>—</td><td>Fino a quando non servono più debridement</td></tr>
+        <tr><td class="sc">Piede diabetico infetto, lieve</td><td class="first">Cefalexina o amoxicillina-clavulanato (Gram-positivi)</td><td>Clindamicina, doxiciclina</td><td>1–2 settimane [19]</td></tr>
+        <tr><td class="sc">Piede diabetico moderato-grave</td><td class="first">Amoxicillina-clavulanato ev o ceftriaxone + metronidazolo; pip-tazo se Pseudomonas recente; + anti-MRSA se rischio</td><td>—</td><td>≈ 10 giorni dopo debridement adeguato; osteomielite ≈ 6 settimane senza resezione, ≈ 3 dopo amputazione con margine osseo positivo [19]</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid2">
+    <div class="card"><span class="label">Trappole nell'anziano</span>
+      <ul class="small ans">
+        <li><b>"Cellulite" bilaterale</b> degli arti inferiori: quasi sempre dermatite da stasi o lipodermatosclerosi, non infezione [17].</li>
+        <li>Trattare i fattori predisponenti: edema, intertrigine e tinea interdigitale, linfedema [17].</li>
+        <li><b>Recidive</b>: penicillina orale a basse dosi in profilassi riduce le recidive di cellulite agli arti inferiori [18].</li>
+      </ul></div>
+    <div class="card"><span class="label">Ulcere e lesioni da pressione</span>
+      <ul class="small ans">
+        <li>Sono sempre colonizzate: il <b>tampone superficiale è fuorviante</b>. Usare tessuto profondo dopo debridement o biopsia ossea [19].</li>
+        <li>Trattare solo se cellulite attorno, segni sistemici o sospetta osteomielite (osso esposto o sondabile, VES/PCR elevate, imaging).</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- ADDOME -->
+<section id="addome">
+  <div class="sec-head"><span class="label">Controllo della fonte prima di tutto</span><h2>Infezioni intra-addominali</h2></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Scenario</th><th>Prima scelta</th><th>Allergia / alternativa</th><th>Durata</th></tr></thead>
+      <tbody class="ans">
+        <tr><td class="sc">Diverticolite non complicata, lieve, immunocompetente</td><td class="first">Gli antibiotici possono essere evitati; da usare in modo selettivo [20]</td><td>Nell'anziano fragile, con comorbidità o segni sistemici: amoxicillina-clavulanato o ceftriaxone + metronidazolo</td><td>Breve</td></tr>
+        <tr><td class="sc">Infezione complicata comunitaria, non grave (appendicite, diverticolite perforata, ascesso)</td><td class="first"><b>Amoxicillina-clavulanato</b> o <b>ceftriaxone + metronidazolo</b> [21]</td><td>Levofloxacina + metronidazolo</td><td><b>4 giorni</b> dopo controllo della fonte [22]</td></tr>
+        <tr><td class="sc">Grave, nosocomiale o post-operatoria</td><td class="first"><b>Pip-tazo</b>; ertapenem (se stabile) o meropenem se rischio ESBL [21]</td><td>—</td><td>4 giorni dopo controllo della fonte [22]</td></tr>
+        <tr><td class="sc">Colangite acuta</td><td class="first"><b>Drenaggio biliare</b> + ceftriaxone + metronidazolo (forme lievi-moderate comunitarie) o pip-tazo (gravi o nosocomiali) [23]</td><td>—</td><td>4–7 giorni dopo il drenaggio [23]</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- C DIFF -->
+<section id="cdiff">
+  <div class="sec-head"><span class="label">Complicanza tipica della terapia antibiotica</span><h2>Clostridioides difficile</h2></div>
+  <div class="grid2">
+    <div class="card"><span class="label">Quando testare e misure generali [26]</span>
+      <ul class="small ans">
+        <li>Solo con ≥ 3 scariche non formate in 24 ore, senza lassativi nelle 48 ore precedenti.</li>
+        <li><b>Grave</b>: leucociti ≥ 15.000/µL o creatinina &gt; 1,5 mg/dL. <b>Fulminante</b>: ipotensione, shock, ileo, megacolon.</li>
+        <li>Sospendere gli antibiotici non necessari; rivalutare gli inibitori di pompa protonica.</li>
+        <li>Isolamento da contatto; lavaggio delle mani con <b>acqua e sapone</b> (le spore resistono al gel alcolico).</li>
+      </ul></div>
+    <div class="tbl-wrap">
+      <table style="min-width:420px">
+        <thead><tr><th>Episodio</th><th>Terapia</th></tr></thead>
+        <tbody class="ans">
+          <tr><td class="sc">Primo episodio</td><td><b>Fidaxomicina</b> 200 mg ×2 per 10 giorni (preferita), oppure <b>vancomicina os</b> 125 mg ×4 per 10 giorni. Metronidazolo solo se nessuna delle due è disponibile [24][25]</td></tr>
+          <tr><td class="sc">Fulminante</td><td>Vancomicina 500 mg ×4 os o da sondino + metronidazolo 500 mg ×3 ev; vancomicina per via rettale se ileo; consulenza chirurgica [26]</td></tr>
+          <tr><td class="sc">Recidiva</td><td>Fidaxomicina, oppure vancomicina a scalare e poi a giorni alterni [24]</td></tr>
+          <tr><td class="sc">≥ 2 recidive</td><td>Trapianto di microbiota fecale [25]</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- SEPSI -->
+<section id="sepsi">
+  <div class="sec-head"><span class="label">Sepsi, batteriemie, influenza</span><h2>Sepsi e batteriemie</h2></div>
+  <div class="grid3">
+    <div class="card"><span class="label">Sepsi senza fonte evidente [27]</span>
+      <ul class="small ans">
+        <li>Shock o sepsi probabile: antibiotico <b>entro 1 ora</b>; sepsi possibile senza shock: entro 3 ore se il sospetto persiste dopo valutazione rapida.</li>
+        <li>Emocolture ×2 prima, senza ritardare la terapia.</li>
+        <li>Empirica: <b>pip-tazo</b> (o <b>meropenem</b> se rischio ESBL); + <b>vancomicina</b> se rischio MRSA (catetere venoso, colonizzazione nota, fonte cutanea).</li>
+        <li>β-lattamici in infusione prolungata. Procalcitonina utile per decidere quando sospendere, non per iniziare.</li>
+      </ul></div>
+    <div class="card"><span class="label">Batteriemia da S. aureus [28]</span>
+      <ul class="small ans">
+        <li>Mai un contaminante: <b>sempre trattare</b>; consulenza infettivologica.</li>
+        <li>Rimuovere il catetere venoso; ecocardiogramma (spesso transesofageo); emocolture di controllo ogni 24–48 h fino a negativizzazione.</li>
+        <li>MSSA: <b>cefazolina</b> o oxacillina, non vancomicina. MRSA: vancomicina (o daptomicina).</li>
+        <li>Non complicata: ≥ 14 giorni ev dalla prima emocoltura negativa; complicata: 4–6 settimane.</li>
+      </ul></div>
+    <div class="card"><span class="label">Batteriemia da Gram-negativi</span>
+      <ul class="small ans">
+        <li>Con fonte controllata e miglioramento clinico: <b>7 giorni</b> non inferiori a 14 (trial BALANCE, età mediana 70 anni; esclusi S. aureus e immunodepressi gravi) [29].</li>
+        <li>Passaggio a terapia orale possibile se stabile e con un orale efficace [14].</li>
+      </ul></div>
+  </div>
+  <div class="card"><span class="label">Influenza nell'anziano [30]</span>
+    <p class="small ans"><b>Oseltamivir</b> 75 mg ×2 per 5 giorni il prima possibile in tutti i ≥ 65 anni; nei ricoverati <b>indipendentemente dal tempo dall'esordio</b>. Ridurre la dose se CrCl &lt; 60. Sospettare una sovrainfezione batterica (pneumococco, S. aureus) se peggiora dopo un iniziale miglioramento.</p></div>
+</section>
+
+<!-- MDR -->
+<section id="mdr">
+  <div class="sec-head"><span class="label">Sempre con l'infettivologo</span><h2>Germi multiresistenti</h2>
+    <p class="muted small">Schema orientativo dalle linee guida IDSA 2024 ed ESCMID 2022 [31][32]. Le molecole "Reserve" vanno usate solo con conferma microbiologica e consulenza.</p></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Germe</th><th>Terapia orientativa</th><th>Nota</th></tr></thead>
+      <tbody class="ans">
+        <tr><td class="sc">Enterobatteri ESBL</td><td>Cistite: nitrofurantoina, fosfomicina, cotrimossazolo se sensibile. Infezioni gravi extravescicali: <b>carbapenemico</b> (meropenem; ertapenem se stabile)</td><td>Pip-tazo inferiore a meropenem nelle batteriemie da E. coli/Klebsiella resistenti al ceftriaxone (mortalità a 30 giorni 12,3% vs 3,7%, trial MERINO) [33]</td></tr>
+        <tr><td class="sc">K. pneumoniae KPC (endemica in Italia)</td><td>Ceftazidime-avibactam, meropenem-vaborbactam <span class="aw R">R</span></td><td>Carbapenemi resistenti nel 24% delle K. pneumoniae da emocoltura [3]</td></tr>
+        <tr><td class="sc">Metallo-β-lattamasi (NDM, VIM)</td><td>Ceftazidime-avibactam + aztreonam, o cefiderocol <span class="aw R">R</span></td><td>Il test per il tipo di carbapenemasi cambia la terapia</td></tr>
+        <tr><td class="sc">OXA-48</td><td>Ceftazidime-avibactam <span class="aw R">R</span></td><td></td></tr>
+        <tr><td class="sc">P. aeruginosa difficile da trattare</td><td>Ceftolozane-tazobactam, ceftazidime-avibactam, imipenem-relebactam, cefiderocol <span class="aw R">R</span></td><td></td></tr>
+        <tr><td class="sc">MRSA</td><td>Vancomicina (AUC 400–600); linezolid nella polmonite; daptomicina nelle batteriemie (mai nella polmonite)</td><td>Monitorare la funzione renale con vancomicina [34]</td></tr>
+        <tr><td class="sc">Enterococco resistente alla vancomicina</td><td>Linezolid o daptomicina</td><td>34,9% degli E. faecium in Italia [3]</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- DURATE -->
+<section id="durate">
+  <div class="sec-head"><span class="label">Più breve è spesso uguale (e più sicuro)</span><h2>Durate da ricordare</h2></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Infezione</th><th>Durata</th><th>Fonte</th></tr></thead>
+      <tbody class="ans">
+        <tr><td>Polmonite comunitaria</td><td class="num">5 giorni (3 se stabile al 3° giorno, non grave)</td><td>[6][8]</td></tr>
+        <tr><td>Polmonite ospedaliera</td><td class="num">7 giorni</td><td>[11][12]</td></tr>
+        <tr><td>Cistite nella donna</td><td class="num">fosfomicina 1 dose · nitrofurantoina 5 giorni</td><td>[13]</td></tr>
+        <tr><td>IVU nell'uomo senza febbre</td><td class="num">7 giorni</td><td>[15]</td></tr>
+        <tr><td>Pielonefrite / IVU complicata</td><td class="num">7 giorni (5–7 con fluorochinolone)</td><td>[14]</td></tr>
+        <tr><td>Cellulite</td><td class="num">5 giorni se migliora</td><td>[17]</td></tr>
+        <tr><td>Infezione intra-addominale con fonte controllata</td><td class="num">4 giorni</td><td>[22]</td></tr>
+        <tr><td>Colangite dopo drenaggio</td><td class="num">4–7 giorni</td><td>[23]</td></tr>
+        <tr><td>C. difficile</td><td class="num">10 giorni</td><td>[24]</td></tr>
+        <tr><td>Batteriemia da Gram-negativi non complicata</td><td class="num">7 giorni</td><td>[14][29]</td></tr>
+        <tr><td>Batteriemia da S. aureus non complicata</td><td class="num">≥ 14 giorni ev</td><td>[28]</td></tr>
+        <tr><td>Osteomielite del piede diabetico senza resezione</td><td class="num">≈ 6 settimane</td><td>[19]</td></tr>
+        <tr><td>Influenza</td><td class="num">5 giorni</td><td>[30]</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SICUREZZA -->
+<section id="sicurezza">
+  <div class="sec-head"><span class="label">Effetti avversi e interazioni nell'anziano</span><h2>Sicurezza</h2></div>
+  <div class="grid2">
+    <div class="tbl-wrap">
+      <table style="min-width:480px">
+        <thead><tr><th>Farmaco</th><th>Rischio nell'anziano</th></tr></thead>
+        <tbody class="ans">
+          <tr><td class="sc">Fluorochinoloni</td><td>Tendinopatia e rottura del tendine (più con corticosteroidi), aneurisma e dissezione aortica, neuropatia, delirium, disglicemia, QT lungo. EMA: riservarli quando non ci sono alternative [36]</td></tr>
+          <tr><td class="sc">Cotrimossazolo</td><td>Iperkaliemia con ACE-i, sartani, anti-MR (ricovero per iperK ≈ 7 volte più frequente rispetto ad amoxicillina) [40]; aumento dell'INR con warfarin [35]</td></tr>
+          <tr><td class="sc">Macrolidi (claritromicina)</td><td>Interazioni CYP3A4: statine (rabdomiolisi), calcio-antagonisti (ipotensione), colchicina; QT lungo [35]</td></tr>
+          <tr><td class="sc">Nitrofurantoina</td><td>Evitare se CrCl &lt; 30 e nell'uso prolungato (tossicità polmonare ed epatica) [35]</td></tr>
+          <tr><td class="sc">Cefepime</td><td>Encefalopatia e stato di male non convulsivo se dose non ridotta in IRC [37]</td></tr>
+          <tr><td class="sc">Linezolid</td><td>Sindrome serotoninergica con SSRI/SNRI; mielotossicità dopo 2 settimane</td></tr>
+          <tr><td class="sc">Clindamicina, fluorochinoloni, cefalosporine</td><td>Rischio più alto di C. difficile</td></tr>
+          <tr><td class="sc">Aminoglicosidi</td><td>Nefro- e ototossicità: in genere dose singola giornaliera e per pochi giorni</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <span class="label">Allergia alla penicillina [38][39]</span>
+      <ul class="small ans">
+        <li>Più del 90% delle persone etichettate come allergiche alla penicillina tollera la penicillina dopo valutazione. L'etichetta porta a farmaci più costosi, meno efficaci e più rischi di C. difficile.</li>
+        <li><b>PEN-FAST</b>: reazione ≤ 5 anni fa (2 punti), anafilassi/angioedema o reazione cutanea grave (2), necessità di trattamento (1). Punteggio &lt; 3 = basso rischio.</li>
+        <li>Con storia non grave, le <b>cefalosporine</b> si possono dare, preferendo quelle con catena laterale diversa (cefazolina, ceftriaxone).</li>
+        <li>Reazioni gravi ritardate (SJS/TEN, DRESS): evitare tutta la classe e chiedere all'allergologo.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="geri">
+    <span class="label">Rilevanza geriatrica</span>
+    <ul class="small">
+      <li>Prima causa di prescrizioni inappropriate in RSA e nei reparti: batteriuria asintomatica trattata come IVU [2].</li>
+      <li>Calcolare la CrCl con Cockcroft-Gault: la creatinina "normale" nell'anziano sarcopenico sovrastima la funzione renale.</li>
+      <li>Ogni antibiotico aggiunto alla politerapia: controllare QT, K⁺, INR e interazioni [35].</li>
+    </ul>
+  </div>
+</section>
+
+<!-- FONTI -->
+<section id="fonti">
+  <div class="sec-head"><span class="label">Bibliografia</span><h2>Fonti</h2></div>
+  <ol class="refs">
+    <li>High KP, et al. Clinical practice guideline for the evaluation of fever and infection in older adult residents of long-term care facilities: 2008 update by IDSA. <i>Clin Infect Dis</i> 2009;48:149–71. <a href="https://doi.org/10.1086/595683" target="_blank" rel="noopener">doi:10.1086/595683</a></li>
+    <li>Nicolle LE, et al. Clinical practice guideline for the management of asymptomatic bacteriuria: 2019 update by IDSA. <i>Clin Infect Dis</i> 2019;68:e83–e110. <a href="https://doi.org/10.1093/cid/ciy1121" target="_blank" rel="noopener">doi:10.1093/cid/ciy1121</a></li>
+    <li>Iacchini S, et al. AR-ISS: sorveglianza nazionale dell'antibiotico-resistenza. Dati 2024. Rapporti ISS Sorveglianza RIS-5/2025. <a href="https://www.epicentro.iss.it/antibiotico-resistenza/ar-iss/RIS-5_2025.pdf" target="_blank" rel="noopener">PDF ISS</a></li>
+    <li>Istituto Superiore di Sanità. AR-ISS, rapporto urinocolture: dati 2024 (aggiornato novembre 2025). <a href="https://www.epicentro.iss.it/antibiotico-resistenza/ar-iss-rapporto-urinocolture" target="_blank" rel="noopener">EpiCentro</a></li>
+    <li>World Health Organization. The WHO AWaRe (Access, Watch, Reserve) antibiotic book. 2022. <a href="https://www.who.int/publications/i/item/9789240062382" target="_blank" rel="noopener">WHO</a></li>
+    <li>Metlay JP, et al. Diagnosis and treatment of adults with community-acquired pneumonia: ATS/IDSA guideline. <i>Am J Respir Crit Care Med</i> 2019;200:e45–e67. <a href="https://doi.org/10.1164/rccm.201908-1581ST" target="_blank" rel="noopener">doi:10.1164/rccm.201908-1581ST</a></li>
+    <li>Lim WS, et al. Defining community acquired pneumonia severity on presentation to hospital (CURB-65). <i>Thorax</i> 2003;58:377–82. <a href="https://doi.org/10.1136/thorax.58.5.377" target="_blank" rel="noopener">doi:10.1136/thorax.58.5.377</a></li>
+    <li>Dinh A, et al. Discontinuing β-lactam treatment after 3 days for patients with community-acquired pneumonia in non-critical care wards (PTC). <i>Lancet</i> 2021;397:1195–203. <a href="https://doi.org/10.1016/S0140-6736(21)00313-5" target="_blank" rel="noopener">doi:10.1016/S0140-6736(21)00313-5</a></li>
+    <li>Dequin PF, et al. Hydrocortisone in severe community-acquired pneumonia (CAPE COD). <i>N Engl J Med</i> 2023;388:1931–41. <a href="https://doi.org/10.1056/NEJMoa2215145" target="_blank" rel="noopener">doi:10.1056/NEJMoa2215145</a></li>
+    <li>Mandell LA, Niederman MS. Aspiration pneumonia. <i>N Engl J Med</i> 2019;380:651–63. <a href="https://doi.org/10.1056/NEJMra1714562" target="_blank" rel="noopener">doi:10.1056/NEJMra1714562</a></li>
+    <li>Kalil AC, et al. Management of adults with hospital-acquired and ventilator-associated pneumonia: IDSA/ATS guidelines. <i>Clin Infect Dis</i> 2016;63:e61–e111. <a href="https://doi.org/10.1093/cid/ciw353" target="_blank" rel="noopener">doi:10.1093/cid/ciw353</a></li>
+    <li>Torres A, et al. International ERS/ESICM/ESCMID/ALAT guidelines for HAP and VAP. <i>Eur Respir J</i> 2017;50:1700582. <a href="https://doi.org/10.1183/13993003.00582-2017" target="_blank" rel="noopener">doi:10.1183/13993003.00582-2017</a></li>
+    <li>Gupta K, et al. International clinical practice guidelines for the treatment of acute uncomplicated cystitis and pyelonephritis in women: IDSA/ESCMID 2010 update. <i>Clin Infect Dis</i> 2011;52:e103–20. <a href="https://doi.org/10.1093/cid/ciq257" target="_blank" rel="noopener">doi:10.1093/cid/ciq257</a></li>
+    <li>Trautner BW, Cortés-Penfield NW, Gupta K, et al. IDSA 2025 guideline on management and treatment of complicated urinary tract infections. <i>Clin Infect Dis</i> 2025. <a href="https://www.idsociety.org/practice-guideline/complicated-urinary-tract-infections/" target="_blank" rel="noopener">IDSA</a></li>
+    <li>Drekonja DM, et al. Effect of 7 vs 14 days of antibiotic therapy on resolution of symptoms among afebrile men with urinary tract infection. <i>JAMA</i> 2021;326:324–31. <a href="https://doi.org/10.1001/jama.2021.9899" target="_blank" rel="noopener">doi:10.1001/jama.2021.9899</a></li>
+    <li>Hooton TM, et al. Diagnosis, prevention, and treatment of catheter-associated urinary tract infection in adults: 2009 IDSA guidelines. <i>Clin Infect Dis</i> 2010;50:625–63. <a href="https://doi.org/10.1086/650482" target="_blank" rel="noopener">doi:10.1086/650482</a></li>
+    <li>Stevens DL, et al. Practice guidelines for the diagnosis and management of skin and soft tissue infections: 2014 update by IDSA. <i>Clin Infect Dis</i> 2014;59:e10–52. <a href="https://doi.org/10.1093/cid/ciu296" target="_blank" rel="noopener">doi:10.1093/cid/ciu296</a></li>
+    <li>Thomas KS, et al. Penicillin to prevent recurrent leg cellulitis (PATCH I). <i>N Engl J Med</i> 2013;368:1695–703. <a href="https://doi.org/10.1056/NEJMoa1206300" target="_blank" rel="noopener">doi:10.1056/NEJMoa1206300</a></li>
+    <li>Senneville É, et al. IWGDF/IDSA guidelines on the diagnosis and treatment of diabetes-related foot infections (IWGDF/IDSA 2023). <i>Clin Infect Dis</i> 2023. <a href="https://doi.org/10.1093/cid/ciad527" target="_blank" rel="noopener">doi:10.1093/cid/ciad527</a></li>
+    <li>Peery AF, Shaukat A, Strate LL. AGA clinical practice update on medical management of colonic diverticulitis. <i>Gastroenterology</i> 2021;160:906–11. <a href="https://doi.org/10.1053/j.gastro.2020.09.059" target="_blank" rel="noopener">doi:10.1053/j.gastro.2020.09.059</a></li>
+    <li>Sartelli M, et al. The management of intra-abdominal infections from a global perspective: 2017 WSES guidelines. <i>World J Emerg Surg</i> 2017;12:29. <a href="https://doi.org/10.1186/s13017-017-0141-6" target="_blank" rel="noopener">doi:10.1186/s13017-017-0141-6</a></li>
+    <li>Sawyer RG, et al. Trial of short-course antimicrobial therapy for intraabdominal infection (STOP-IT). <i>N Engl J Med</i> 2015;372:1996–2005. <a href="https://doi.org/10.1056/NEJMoa1411162" target="_blank" rel="noopener">doi:10.1056/NEJMoa1411162</a></li>
+    <li>Gomi H, et al. Tokyo Guidelines 2018: antimicrobial therapy for acute cholangitis and cholecystitis. <i>J Hepatobiliary Pancreat Sci</i> 2018;25:3–16. <a href="https://doi.org/10.1002/jhbp.518" target="_blank" rel="noopener">doi:10.1002/jhbp.518</a></li>
+    <li>Johnson S, et al. IDSA/SHEA 2021 focused update guidelines on management of Clostridioides difficile infection in adults. <i>Clin Infect Dis</i> 2021;73:e1029–44. <a href="https://doi.org/10.1093/cid/ciab549" target="_blank" rel="noopener">doi:10.1093/cid/ciab549</a></li>
+    <li>van Prehn J, et al. ESCMID 2021 update on the treatment guidance document for Clostridioides difficile infection in adults. <i>Clin Microbiol Infect</i> 2021;27(Suppl 2):S1–S21. <a href="https://doi.org/10.1016/j.cmi.2021.09.038" target="_blank" rel="noopener">doi:10.1016/j.cmi.2021.09.038</a></li>
+    <li>McDonald LC, et al. Clinical practice guidelines for Clostridium difficile infection in adults and children: 2017 update by IDSA/SHEA. <i>Clin Infect Dis</i> 2018;66:e1–e48. <a href="https://doi.org/10.1093/cid/cix1085" target="_blank" rel="noopener">doi:10.1093/cid/cix1085</a></li>
+    <li>Evans L, et al. Surviving Sepsis Campaign: international guidelines for management of sepsis and septic shock 2021. <i>Intensive Care Med</i> 2021;47:1181–247. <a href="https://doi.org/10.1007/s00134-021-06506-y" target="_blank" rel="noopener">doi:10.1007/s00134-021-06506-y</a></li>
+    <li>Holland TL, Arnold C, Fowler VG. Clinical management of Staphylococcus aureus bacteremia: a review. <i>JAMA</i> 2014;312:1330–41. <a href="https://doi.org/10.1001/jama.2014.9743" target="_blank" rel="noopener">doi:10.1001/jama.2014.9743</a></li>
+    <li>BALANCE Investigators (Daneman N, et al.). Antibiotic treatment for 7 versus 14 days in patients with bloodstream infections. <i>N Engl J Med</i> 2025;392:1065–78. <a href="https://doi.org/10.1056/NEJMoa2404991" target="_blank" rel="noopener">doi:10.1056/NEJMoa2404991</a></li>
+    <li>Uyeki TM, et al. Clinical practice guidelines by IDSA: 2018 update on diagnosis, treatment, chemoprophylaxis, and institutional outbreak management of seasonal influenza. <i>Clin Infect Dis</i> 2019;68:e1–e47. <a href="https://doi.org/10.1093/cid/ciy866" target="_blank" rel="noopener">doi:10.1093/cid/ciy866</a></li>
+    <li>Tamma PD, et al. Infectious Diseases Society of America 2024 guidance on the treatment of antimicrobial-resistant Gram-negative infections. <i>Clin Infect Dis</i> 2024. <a href="https://doi.org/10.1093/cid/ciae403" target="_blank" rel="noopener">doi:10.1093/cid/ciae403</a></li>
+    <li>Paul M, et al. ESCMID guidelines for the treatment of infections caused by multidrug-resistant Gram-negative bacilli. <i>Clin Microbiol Infect</i> 2022;28:521–47. <a href="https://doi.org/10.1016/j.cmi.2021.11.025" target="_blank" rel="noopener">doi:10.1016/j.cmi.2021.11.025</a></li>
+    <li>Harris PNA, et al. Effect of piperacillin-tazobactam vs meropenem on 30-day mortality for patients with E coli or Klebsiella pneumoniae bloodstream infection and ceftriaxone resistance (MERINO). <i>JAMA</i> 2018;320:984–94. <a href="https://doi.org/10.1001/jama.2018.12163" target="_blank" rel="noopener">doi:10.1001/jama.2018.12163</a></li>
+    <li>Rybak MJ, et al. Therapeutic monitoring of vancomycin for serious MRSA infections: revised consensus guideline. <i>Am J Health Syst Pharm</i> 2020;77:835–64. <a href="https://doi.org/10.1093/ajhp/zxaa036" target="_blank" rel="noopener">doi:10.1093/ajhp/zxaa036</a></li>
+    <li>2023 American Geriatrics Society Beers Criteria Update Expert Panel. American Geriatrics Society 2023 updated AGS Beers Criteria. <i>J Am Geriatr Soc</i> 2023;71:2052–81. <a href="https://doi.org/10.1111/jgs.18372" target="_blank" rel="noopener">doi:10.1111/jgs.18372</a></li>
+    <li>European Medicines Agency. Quinolone- and fluoroquinolone-containing medicinal products: Article 31 referral (2018–2019). <a href="https://www.ema.europa.eu/en/medicines/human/referrals/quinolone-fluoroquinolone-containing-medicinal-products" target="_blank" rel="noopener">EMA</a></li>
+    <li>Payne LE, et al. Cefepime-induced neurotoxicity: a systematic review. <i>Crit Care</i> 2017;21:276. <a href="https://doi.org/10.1186/s13054-017-1856-1" target="_blank" rel="noopener">doi:10.1186/s13054-017-1856-1</a></li>
+    <li>Khan DA, et al. Drug allergy: a 2022 practice parameter update. <i>J Allergy Clin Immunol</i> 2022;150:1333–93. <a href="https://doi.org/10.1016/j.jaci.2022.08.028" target="_blank" rel="noopener">doi:10.1016/j.jaci.2022.08.028</a></li>
+    <li>Trubiano JA, et al. Development and validation of a penicillin allergy clinical decision rule (PEN-FAST). <i>JAMA Intern Med</i> 2020;180:745–52. <a href="https://doi.org/10.1001/jamainternmed.2020.0403" target="_blank" rel="noopener">doi:10.1001/jamainternmed.2020.0403</a></li>
+    <li>Antoniou T, et al. Trimethoprim-sulfamethoxazole-induced hyperkalemia in patients receiving inhibitors of the renin-angiotensin system. <i>Arch Intern Med</i> 2010;170:1045–9. <a href="https://doi.org/10.1001/archinternmed.2010.142" target="_blank" rel="noopener">doi:10.1001/archinternmed.2010.142</a></li>
+  </ol>
+</section>
+
+</div>
+</main>
+
+<footer><div class="wrap">Scheda di studio, quarta della serie con "Elettroliti in schema", "Equilibrio acido-base" ed "ECG passo per passo". Non sostituisce l'antibiogramma locale, i protocolli aziendali né la consulenza infettivologica.</div></footer>
+
+<script>
+(function(){
+/* matrice di spettro: s = affidabile, p = parziale/variabile, n = no
+   colonne: Strep, MSSA, MRSA, E.faecalis, Enterobatteri, ESBL, Pseudomonas, Anaerobi, Atipici */
+var G=[
+ ['Penicilline',[
+  ['Amoxicillina','A','snnspnnpn'],
+  ['Amoxicillina-clavulanato','A','ssnspnnsn'],
+  ['Piperacillina-tazobactam','W','ssnsspssn']]],
+ ['Cefalosporine',[
+  ['Cefalexina / cefazolina','A','psnnpnnnn'],
+  ['Ceftriaxone','W','spnnsnnnn'],
+  ['Ceftazidime','W','pnnnsnsnn'],
+  ['Cefepime','W','spnnsnsnn']]],
+ ['Carbapenemi',[
+  ['Ertapenem','W','ssnnssnsn'],
+  ['Meropenem','W','ssnnssssn']]],
+ ['Anti-Gram-positivi',[
+  ['Vancomicina','W','spssnnnnn'],
+  ['Linezolid','R','ssssnnnnn']]],
+ ['Altri',[
+  ['Azitromicina / claritromicina','W','ppnnnnnns'],
+  ['Doxiciclina','A','pppnpnnns'],
+  ['Levofloxacina','W','spnnpnpns'],
+  ['Ciprofloxacina','W','nnnnpnpnp'],
+  ['Cotrimossazolo','A','pssnpnnnn'],
+  ['Clindamicina','A','pppnnnnpn'],
+  ['Metronidazolo','A','nnnnnnnsn'],
+  ['Amikacina','A','nnnnspsnn']]],
+ ['Solo cistite',[
+  ['Nitrofurantoina','A','nnnsssnnn'],
+  ['Fosfomicina orale','W','nnnpssnnn']]]
+];
+var lab={s:'copertura affidabile',p:'parziale o variabile',n:'non copre'};
+var tb=document.querySelector('#mx tbody');
+G.forEach(function(g){
+  var tr=document.createElement('tr'); tr.className='grp';
+  var td=document.createElement('td'); td.colSpan=10; td.textContent=g[0]; tr.appendChild(td); tb.appendChild(tr);
+  g[1].forEach(function(r){
+    var tr=document.createElement('tr');
+    var d=document.createElement('td'); d.className='drug';
+    d.innerHTML=r[0]+' <span class="aw '+r[1]+'">'+r[1]+'</span>';
+    tr.appendChild(d);
+    r[2].split('').forEach(function(c){
+      var td=document.createElement('td'); td.className='ans';
+      var i=document.createElement('i'); i.className='d '+c; i.setAttribute('role','img'); i.setAttribute('aria-label',lab[c]); i.title=lab[c];
+      td.appendChild(i); tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+});
+
+/* modalità ripasso */
+var btn=document.getElementById('quizToggle');
+function set(on){
+  document.body.classList.toggle('quiz',on);
+  btn.setAttribute('aria-pressed',on?'true':'false');
+  btn.textContent=on?'Ripasso attivo':'Modalità ripasso';
+  if(!on){document.querySelectorAll('.ans.shown').forEach(function(e){e.classList.remove('shown');});}
+  try{localStorage.setItem('quiz',on?'1':'0');}catch(e){}
+}
+btn.addEventListener('click',function(){set(!document.body.classList.contains('quiz'));});
+document.addEventListener('click',function(ev){
+  if(!document.body.classList.contains('quiz'))return;
+  var a=ev.target.closest('.ans'); if(!a)return;
+  if(!a.classList.contains('shown')){ev.preventDefault();a.classList.add('shown');}
+});
+var saved=null; try{saved=localStorage.getItem('quiz');}catch(e){}
+if(saved==='1')set(true);
+})();
+</script>
